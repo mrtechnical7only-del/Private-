@@ -32,7 +32,7 @@
             <div class="p-8">
                 <h2 class="text-xl font-semibold text-slate-700 mb-6 text-center">Login to Network</h2>
                 <div id="errorMessage" class="hidden mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg flex items-center gap-2 text-sm">
-                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                    <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
                     <span>Invalid Username or Password.</span>
                 </div>
                 <form id="loginForm" class="space-y-5">
@@ -65,7 +65,10 @@
         <nav class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-50">
             <div class="flex items-center gap-3">
                 <i data-lucide="wifi" class="w-7 h-7 text-blue-400"></i>
-                <h1 class="text-xl font-bold tracking-wide">WIFI ADMIN</h1>
+                <div>
+                    <h1 class="text-xl font-bold tracking-wide">WIFI ADMIN</h1>
+                    <p id="userRoleBadge" class="text-xs text-blue-300 font-medium">Role: Unknown</p>
+                </div>
             </div>
             <button id="logoutBtn" class="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                 <i data-lucide="log-out" class="w-4 h-4"></i> Logout
@@ -75,6 +78,7 @@
         <main class="flex-1 p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Side -->
             <div class="lg:col-span-1 space-y-6">
+                <!-- Connected Device Info -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3">
                         <i data-lucide="activity" class="text-green-500 w-5 h-5"></i> Connected Device
@@ -92,8 +96,8 @@
                     </div>
                 </div>
 
-                <!-- LIVE TRACKER -->
-                <div class="bg-slate-800 text-white rounded-xl shadow-lg p-6">
+                <!-- LIVE TRACKER (Hidden for Normal Users) -->
+                <div id="liveTrackerPanel" class="bg-slate-800 text-white rounded-xl shadow-lg p-6 hidden">
                     <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-blue-400 border-b border-slate-700 pb-3">
                         <i data-lucide="eye" class="w-5 h-5"></i> Live User Activity
                     </h2>
@@ -103,7 +107,7 @@
                 </div>
             </div>
 
-            <!-- Right Side -->
+            <!-- Right Side (Browsing History) -->
             <div class="lg:col-span-2 space-y-8">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b pb-4">
@@ -158,6 +162,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Track current user role
+        let currentUserRole = null; 
+
         // Browsing Data Arrays
         const historyData = {
             apps: [
@@ -191,6 +198,7 @@
                 await addDoc(collection(db, "live_tracking_logs"), {
                     action: action,
                     detail: detail,
+                    role: currentUserRole, // Track kisne click kiya
                     timestamp: serverTimestamp()
                 });
             } catch (e) {
@@ -198,12 +206,13 @@
             }
         }
 
-        // Live Logs ko sunne (listen) ka function
+        // Live Logs ko sunne (listen) ka function (Sirf Admin ke liye)
+        let unsubscribeTracker = null;
         function startLiveTracking() {
             const logContainer = document.getElementById("logContainer");
             const q = query(collection(db, "live_tracking_logs"), orderBy("timestamp", "desc"));
             
-            onSnapshot(q, (snapshot) => {
+            unsubscribeTracker = onSnapshot(q, (snapshot) => {
                 logContainer.innerHTML = "";
                 
                 if (snapshot.empty) {
@@ -213,7 +222,6 @@
 
                 snapshot.forEach((doc) => {
                     const log = doc.data();
-                    // Date Format setting
                     let timeString = "...";
                     if (log.timestamp) {
                         timeString = log.timestamp.toDate().toLocaleTimeString();
@@ -223,9 +231,12 @@
                     let colorClass = "text-blue-300 border-blue-400";
                     if(log.action === "LOGIN") colorClass = "text-green-300 border-green-400";
                     
+                    let roleBadge = log.role === 'admin' ? '[Admin]' : '[User]';
+
                     logContainer.innerHTML += `
                         <div class="log-entry p-2 bg-slate-700/50 rounded border-l-2 ${colorClass} mb-1">
                             <span class="text-slate-400">[${timeString}]</span>
+                            <span class="text-slate-300 text-[10px]">${roleBadge}</span>
                             <span class="uppercase font-bold ml-1">${log.action}:</span>
                             <span class="text-slate-100 ml-1">${log.detail}</span>
                         </div>
@@ -239,6 +250,11 @@
             const appList = document.getElementById("appUsageList");
             const igList = document.getElementById("instagramList");
             const chromeList = document.getElementById("chromeList");
+
+            // Clear lists first to prevent duplicates on re-login
+            appList.innerHTML = '';
+            igList.innerHTML = '';
+            chromeList.innerHTML = '';
 
             historyData.apps.forEach(item => {
                 appList.innerHTML += `<div class="flex justify-between items-center border-b p-3">
@@ -281,9 +297,6 @@
         // DOM Ready Function
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
-            
-            // Background me sabse pehle tracker on kar diya
-            startLiveTracking();
 
             // Login check 
             document.getElementById("loginForm").onsubmit = (e) => {
@@ -291,19 +304,50 @@
                 const u = document.getElementById("usernameInput").value;
                 const p = document.getElementById("passwordInput").value;
 
+                // 1. ADMIN LOGIN CHECK
                 if (u === 'mywifi' && p === 'Cat7777') {
+                    currentUserRole = 'admin';
+                    document.getElementById("userRoleBadge").innerText = "Role: Master Admin";
+                    
+                    // Show Dashboard
                     document.getElementById("errorMessage").classList.add("hidden");
                     document.getElementById("loginScreen").classList.add("hidden");
-                    
                     const dash = document.getElementById("dashboardScreen");
                     dash.classList.remove("hidden");
                     dash.classList.add("flex");
                     
+                    // Show Live Tracker for Admin
+                    document.getElementById("liveTrackerPanel").classList.remove("hidden");
+                    startLiveTracking(); 
+                    
                     renderData();
-                    logToFirebase("LOGIN", "Admin Portal Opened"); 
-                } else {
+                    logToFirebase("LOGIN", "Admin logged in"); 
+                } 
+                // 2. NORMAL USER LOGIN CHECK
+                else if (u === 'wifi' && p === 'Cat1234') {
+                    currentUserRole = 'user';
+                    document.getElementById("userRoleBadge").innerText = "Role: Normal User";
+                    
+                    // Show Dashboard
+                    document.getElementById("errorMessage").classList.add("hidden");
+                    document.getElementById("loginScreen").classList.add("hidden");
+                    const dash = document.getElementById("dashboardScreen");
+                    dash.classList.remove("hidden");
+                    dash.classList.add("flex");
+                    
+                    // Hide Live Tracker for User
+                    document.getElementById("liveTrackerPanel").classList.add("hidden");
+                    if (unsubscribeTracker) {
+                        unsubscribeTracker(); // Stop listening for user
+                    }
+                    
+                    renderData();
+                    logToFirebase("LOGIN", "Normal User logged in"); 
+                } 
+                // 3. INVALID CREDENTIALS
+                else {
                     document.getElementById("errorMessage").classList.remove("hidden");
-                    logToFirebase("ERROR", `Failed login attempt with: ${u}`);
+                    // Optional: logToFirebase("ERROR", `Failed login attempt`);
                 }
             };
 
