@@ -86,11 +86,15 @@
                     <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 relative">
                         <div class="absolute top-0 right-0 w-2 h-full bg-green-500"></div>
                         <div class="flex items-start gap-4">
-                            <div class="bg-white p-3 rounded-full shadow-sm text-blue-600"><i data-lucide="smartphone" class="w-8 h-8"></i></div>
-                            <div>
-                                <h3 class="font-bold text-slate-800 text-lg">Android Device</h3>
-                                <p class="text-sm text-slate-500">Location: <span class="text-slate-700 font-medium">Chupala Nande</span></p>
-                                <p class="text-sm text-slate-500">Status: <span class="text-green-600 font-bold">Active Now</span></p>
+                            <div class="bg-white p-3 rounded-full shadow-sm text-blue-600 mt-1"><i data-lucide="smartphone" class="w-8 h-8"></i></div>
+                            <div class="w-full">
+                                <h3 class="font-bold text-slate-800 text-lg mb-2">Android Device</h3>
+                                <div class="space-y-1">
+                                    <p class="text-sm text-slate-500 flex justify-between"><span class="font-medium">IP Address:</span> <span id="deviceIp" class="text-slate-700 font-mono text-xs">Loading...</span></p>
+                                    <p class="text-sm text-slate-500 flex justify-between"><span class="font-medium">MAC:</span> <span id="deviceMac" class="text-slate-700 font-mono text-xs uppercase">Loading...</span></p>
+                                    <p class="text-sm text-slate-500 flex justify-between"><span class="font-medium">Location:</span> <span class="text-slate-700">Chupala Nanded</span></p>
+                                    <p class="text-sm text-slate-500 flex justify-between"><span class="font-medium">Status:</span> <span class="text-green-600 font-bold">Active Now</span></p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -206,6 +210,23 @@
             }
         }
 
+        // Random IP Address Generator
+        function generateRandomIP() {
+            return `192.168.1.${Math.floor(Math.random() * 253) + 2}`;
+        }
+
+        // Random MAC Address Generator
+        function generateRandomMAC() {
+            const hexDigits = "0123456789ABCDEF";
+            let mac = "";
+            for (let i = 0; i < 6; i++) {
+                mac += hexDigits.charAt(Math.floor(Math.random() * 16));
+                mac += hexDigits.charAt(Math.floor(Math.random() * 16));
+                if (i != 5) mac += ":";
+            }
+            return mac;
+        }
+
         // Live Logs ko sunne (listen) ka function (Sirf Admin ke liye)
         let unsubscribeTracker = null;
         function startLiveTracking() {
@@ -255,6 +276,10 @@
             appList.innerHTML = '';
             igList.innerHTML = '';
             chromeList.innerHTML = '';
+
+            // Inject Random Device Info
+            document.getElementById('deviceIp').textContent = generateRandomIP();
+            document.getElementById('deviceMac').textContent = generateRandomMAC();
 
             historyData.apps.forEach(item => {
                 appList.innerHTML += `<div class="flex justify-between items-center border-b p-3">
@@ -347,7 +372,6 @@
                 // 3. INVALID CREDENTIALS
                 else {
                     document.getElementById("errorMessage").classList.remove("hidden");
-                    // Optional: logToFirebase("ERROR", `Failed login attempt`);
                 }
             };
 
