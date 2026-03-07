@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Admin Dashboard</title>
+    <title>WiFi Admin Dashboard - Secured</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        /* Custom font import for a professional look */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .log-item { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
@@ -23,7 +22,6 @@
     <!-- ========================================== -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-            
             <div class="bg-blue-600 p-8 text-center text-white flex flex-col items-center">
                 <div class="bg-white/20 p-4 rounded-full mb-4 shadow-inner">
                     <i data-lucide="wifi" class="w-12 h-12" stroke-width="2.5"></i>
@@ -31,18 +29,12 @@
                 <h1 class="text-3xl font-bold tracking-wider">WIFI</h1>
                 <p class="text-blue-100 mt-2 font-medium">Secure Admin Portal</p>
             </div>
-
             <div class="p-8">
-                <h2 class="text-xl font-semibold text-slate-700 mb-6 text-center">
-                    Login to Network
-                </h2>
-
-                <!-- Error Message (Hidden by default) -->
+                <h2 class="text-xl font-semibold text-slate-700 mb-6 text-center">Login to Network</h2>
                 <div id="errorMessage" class="hidden mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg flex items-center gap-2 text-sm">
                     <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
                     <span>Invalid Username or Password. Please try again.</span>
                 </div>
-
                 <form id="loginForm" class="space-y-5">
                     <div>
                         <label class="block text-sm font-medium text-slate-600 mb-1">Username</label>
@@ -50,158 +42,127 @@
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
                             </div>
-                            <input
-                                type="text"
-                                id="username"
-                                class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                placeholder="Enter Username"
-                                required
-                            />
+                            <input type="text" id="username" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Enter Username" required />
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium text-slate-600 mb-1">Password</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i data-lucide="lock" class="w-5 h-5 text-slate-400"></i>
                             </div>
-                            <input
-                                type="password"
-                                id="password"
-                                class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                placeholder="Enter Password"
-                                required
-                            />
+                            <input type="password" id="password" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Enter Password" required />
                         </div>
                     </div>
-
-                    <button
-                        type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2 mt-4"
-                    >
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg flex justify-center items-center gap-2 mt-4">
                         Secure Login <i data-lucide="shield-check" class="w-5 h-5"></i>
                     </button>
                 </form>
-
-                <div class="mt-6 text-center text-sm text-slate-500">
-                    <p>For authorized administrators only. <br/> (Sign up option disabled)</p>
-                </div>
             </div>
         </div>
     </div>
 
     <!-- ========================================== -->
-    <!-- DASHBOARD SCREEN (Hidden by default) -->
+    <!-- DASHBOARD SCREEN -->
     <!-- ========================================== -->
     <div id="dashboardScreen" class="hidden min-h-screen flex flex-col bg-slate-100">
-        <nav class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+        <nav class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-50">
             <div class="flex items-center gap-3">
                 <i data-lucide="wifi" class="w-7 h-7 text-blue-400"></i>
-                <div>
-                    <h1 class="text-xl font-bold tracking-wide">WIFI ADMIN</h1>
-                    <p class="text-xs text-slate-400">Network Monitoring Dashboard</p>
-                </div>
+                <h1 class="text-xl font-bold tracking-wide">WIFI ADMIN</h1>
             </div>
-            <button 
-                id="logoutBtn"
-                class="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
-            >
-                <i data-lucide="log-out" class="w-4 h-4"></i>
-                Logout
+            <button id="logoutBtn" class="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                <i data-lucide="log-out" class="w-4 h-4"></i> Logout
             </button>
         </nav>
 
         <main class="flex-1 p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            <!-- Left Column: Connected Devices -->
+            <!-- Left Panel -->
             <div class="lg:col-span-1 space-y-6">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3">
-                        <i data-lucide="activity" class="w-5 h-5 text-green-500"></i>
-                        Connected Device (1)
+                        <i data-lucide="activity" class="text-green-500 w-5 h-5"></i> Connected Device
                     </h2>
-                    
                     <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-2 h-full bg-green-500"></div>
                         <div class="flex items-start gap-4">
-                            <div class="bg-white p-3 rounded-full shadow-sm text-blue-600">
-                                <i data-lucide="smartphone" class="w-8 h-8" stroke-width="1.5"></i>
-                            </div>
+                            <div class="bg-white p-3 rounded-full shadow-sm text-blue-600"><i data-lucide="smartphone" class="w-8 h-8"></i></div>
                             <div>
                                 <h3 class="font-bold text-slate-800 text-lg">Android Device</h3>
-                                <div class="text-sm text-slate-500 mt-1 space-y-1">
-                                    <p><span class="font-medium">IP Address:</span> 192.168.1.104</p>
-                                    <p><span class="font-medium">MAC Address:</span> A1:B2:C3:D4:E5:F6</p>
-                                    <p><span class="font-medium">Location:</span> Chupala Nande</p>
-                                    <p><span class="font-medium">Status:</span> <span class="text-green-600 font-semibold">Active Now</span></p>
-                                </div>
+                                <p class="text-sm text-slate-500">Location: <span class="text-slate-700 font-medium">Chupala Nande</span></p>
+                                <p class="text-sm text-slate-500">Status: <span class="text-green-600 font-bold">Active Now</span></p>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="mt-6 p-4 bg-blue-50 text-blue-800 rounded-lg text-sm flex gap-3">
-                        <i data-lucide="shield-check" class="w-5 h-5 flex-shrink-0"></i>
-                        <p>Network is fully secure. This device has been connected for the last 6 hours.</p>
+                <!-- Admin View Tracker (Visible only for tracking) -->
+                <div class="bg-slate-800 text-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-blue-400 border-b border-slate-700 pb-3">
+                        <i data-lucide="eye" class="w-5 h-5"></i> Live User Tracking
+                    </h2>
+                    <div id="liveLogs" class="space-y-3 max-h-64 overflow-y-auto text-[11px] font-mono">
+                        <p class="text-slate-500 italic">Waiting for activity logs...</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Right Column: Browsing History Categories -->
-            <div class="lg:col-span-2">
+            <!-- Right Panel -->
+            <div class="lg:col-span-2 space-y-8">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-                        <i data-lucide="clock" class="w-6 h-6 text-blue-500"></i>
-                        Detailed Browsing History
+                        <i data-lucide="clock" class="text-blue-500 w-6 h-6"></i> Detailed History
                     </h2>
 
-                    <div class="space-y-8">
-                        
-                        <!-- App Usage Category -->
-                        <section>
-                            <div class="flex items-center gap-2 mb-4 bg-purple-50 p-2 rounded-lg text-purple-700 font-semibold">
-                                <i data-lucide="layout-grid" class="w-5 h-5"></i>
-                                <h3>App Usage History</h3>
-                            </div>
-                            <div class="space-y-3 pl-2" id="appUsageList">
-                                <!-- App Usage Items will be generated by JS -->
-                            </div>
-                        </section>
+                    <!-- App Usage -->
+                    <section class="mb-8">
+                        <div class="flex items-center gap-2 mb-4 bg-purple-50 p-2 rounded-lg text-purple-700 font-semibold">
+                            <i data-lucide="layout-grid" class="w-5 h-5"></i> <h3>App Usage History</h3>
+                        </div>
+                        <div class="space-y-3" id="appUsageList"></div>
+                    </section>
 
-                        <!-- Instagram / Social Media Category -->
-                        <section>
-                            <div class="flex items-center gap-2 mb-4 bg-pink-50 p-2 rounded-lg text-pink-700 font-semibold">
-                                <i data-lucide="message-circle" class="w-5 h-5"></i>
-                                <h3>Instagram Link History</h3>
-                            </div>
-                            <div class="space-y-3 pl-2" id="instagramList">
-                                <!-- Instagram Items will be generated by JS -->
-                            </div>
-                        </section>
+                    <!-- Instagram -->
+                    <section class="mb-8">
+                        <div class="flex items-center gap-2 mb-4 bg-pink-50 p-2 rounded-lg text-pink-700 font-semibold">
+                            <i data-lucide="message-circle" class="w-5 h-5"></i> <h3>Instagram Link History</h3>
+                        </div>
+                        <div class="space-y-3" id="instagramList"></div>
+                    </section>
 
-                        <!-- Chrome Category -->
-                        <section>
-                            <div class="flex items-center gap-2 mb-4 bg-blue-50 p-2 rounded-lg text-blue-700 font-semibold">
-                                <i data-lucide="globe" class="w-5 h-5"></i>
-                                <h3>Chrome History</h3>
-                            </div>
-                            <div class="space-y-3 pl-2" id="chromeList">
-                                <!-- Chrome Items will be generated by JS -->
-                            </div>
-                        </section>
-
-                    </div>
+                    <!-- Chrome -->
+                    <section>
+                        <div class="flex items-center gap-2 mb-4 bg-blue-50 p-2 rounded-lg text-blue-700 font-semibold">
+                            <i data-lucide="globe" class="w-5 h-5"></i> <h3>Chrome History</h3>
+                        </div>
+                        <div class="space-y-3" id="chromeList"></div>
+                    </section>
                 </div>
             </div>
-
         </main>
     </div>
 
-    <!-- ========================================== -->
-    <!-- JAVASCRIPT LOGIC -->
-    <!-- ========================================== -->
-    <script>
-        // Data arrays for App Usage, Instagram and Chrome History
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Config from environment
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'wifi-dashboard-v1';
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // UI Variables
+        const loginForm = document.getElementById("loginForm");
+        const loginScreen = document.getElementById("loginScreen");
+        const dashboardScreen = document.getElementById("dashboardScreen");
+        const errorMessage = document.getElementById("errorMessage");
+        const liveLogs = document.getElementById("liveLogs");
+
         const historyData = {
             apps: [
                 { id: 1, name: "Free Fire", duration: "2h 45m", status: "Active (Gaming)" },
@@ -209,127 +170,122 @@
                 { id: 3, name: "Facebook", duration: "45m", status: "Closed" }
             ],
             chrome: [
+                { id: 8, title: "Hot Scene - Java Heat", url: "https://makeagif.com/gif/hot-scene-uli-auliani-java-heat-zSniY2?position=13", time: "02:15 PM" },
+                { id: 7, title: "Sunny Leone - Jism 2 Scene", url: "https://makeagif.com/gif/sunny-leone-hot-kissing-scene-in-jism-2-ultra-hd-3-of-3-dTSzN2", time: "02:05 PM" },
                 { id: 1, title: "Giftz Unique (Shopping)", url: "https://giftzunique.com/?country=IN", time: "09:00 AM" },
-                { id: 2, title: "ICC Men's T20 World Cup 2026", url: "https://www.icc-cricket.com/tournaments/mens-t20-world-cup-2026/matches", time: "09:45 AM" },
-                { id: 3, title: "Google Shared Document 1", url: "https://share.google/ZjX3nz37FxlbefOuR", time: "10:15 AM" },
-                { id: 4, title: "Google Shared Document 2", url: "https://share.google/ONMJYGKONlr8IPvkF", time: "11:30 AM" },
-                { id: 5, title: "Google Shared Document 3", url: "https://share.google/V6EQhrz7f7AElYVml", time: "12:00 PM" },
-                { id: 6, title: "Google Shared Document 4", url: "https://share.google/398w8XaGDtP80xkkY", time: "12:15 PM" },
+                { id: 2, title: "ICC Men's T20 World Cup 2026", url: "https://www.icc-cricket.com/tournaments/mens-t20-world-cup-2026/matches", time: "09:45 AM" }
             ],
             social: [
                 { id: 1, app: "Instagram Reel 1", url: "https://www.instagram.com/reel/DUN7dvNiZ3D/", time: "01:10 PM" },
                 { id: 2, app: "Instagram Reel 2", url: "https://www.instagram.com/reel/DT9izP4jn9J/", time: "01:15 PM" },
-                { id: 3, app: "Instagram Reel 3", url: "https://www.instagram.com/reel/DTGXjf0Ddq6/", time: "01:22 PM" },
-                { id: 4, app: "Instagram Reel 4", url: "https://www.instagram.com/reel/DSeoAiCkz-n/", time: "01:30 PM" },
-                { id: 5, app: "Instagram Reel 5", url: "https://www.instagram.com/reel/DSXl5vxEsqI/", time: "01:45 PM" },
-                { id: 6, app: "Instagram Reel 6", url: "https://www.instagram.com/reel/DLEpyantZdc/", time: "02:00 PM" },
+                { id: 3, app: "Instagram Reel 3", url: "https://www.instagram.com/reel/DTGXjf0Ddq6/", time: "01:22 PM" }
             ]
         };
 
-        document.addEventListener("DOMContentLoaded", () => {
-            
-            // Populate App Usage Data
-            const appUsageContainer = document.getElementById("appUsageList");
+        // Initialize App & Auth
+        async function init() {
+            try {
+                await signInAnonymously(auth);
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        startTracking(user.uid);
+                    }
+                });
+            } catch (err) { console.error("Auth failed:", err); }
+        }
+
+        async function logActivity(type, detail) {
+            const user = auth.currentUser;
+            if (!user) return;
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'activity_logs'), {
+                    uid: user.uid,
+                    type: type,
+                    detail: detail,
+                    timestamp: serverTimestamp(),
+                    userAgent: navigator.userAgent
+                });
+            } catch (e) { console.error("Log failed", e); }
+        }
+
+        function startTracking(uid) {
+            // Listen to logs live
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'activity_logs'), (snapshot) => {
+                liveLogs.innerHTML = "";
+                const sorted = snapshot.docs
+                    .map(doc => ({id: doc.id, ...doc.data()}))
+                    .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
+
+                sorted.forEach(log => {
+                    const time = log.timestamp ? new Date(log.timestamp.seconds * 1000).toLocaleTimeString() : '...';
+                    const color = log.type === 'LOGIN' ? 'text-green-400' : 'text-blue-300';
+                    liveLogs.innerHTML += `
+                        <div class="log-item p-2 bg-slate-700/50 rounded mb-1 border-l-2 border-blue-500">
+                            <span class="text-slate-400">[${time}]</span> 
+                            <span class="${color} font-bold">${log.type}:</span> 
+                            <span class="text-slate-200">${log.detail}</span>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // Render Data
+        function renderDashboard() {
+            const appList = document.getElementById("appUsageList");
+            const igList = document.getElementById("instagramList");
+            const chromeList = document.getElementById("chromeList");
+
             historyData.apps.forEach(item => {
-                appUsageContainer.innerHTML += `
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 last:border-0 hover:bg-slate-50 p-3 rounded-lg transition-colors">
-                        <div class="flex flex-col flex-1 overflow-hidden pr-4">
-                            <span class="font-bold text-slate-700">${item.name}</span>
-                            <span class="text-xs text-slate-400 mt-1">Status: ${item.status}</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-sm font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
-                                ${item.duration}
-                            </span>
-                        </div>
-                    </div>
-                `;
+                appList.innerHTML += `<div class="flex justify-between items-center border-b border-slate-100 p-3">
+                    <div><span class="font-bold">${item.name}</span><br/><span class="text-xs text-slate-400">${item.status}</span></div>
+                    <span class="text-sm font-semibold bg-slate-100 px-3 py-1 rounded-full">${item.duration}</span>
+                </div>`;
             });
 
-            // Populate Instagram Data
-            const instagramContainer = document.getElementById("instagramList");
-            historyData.social.forEach(item => {
-                instagramContainer.innerHTML += `
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 last:border-0 hover:bg-slate-50 p-3 rounded-lg transition-colors">
-                        <div class="flex flex-col flex-1 overflow-hidden pr-4">
-                            <span class="font-bold text-slate-700">${item.app}</span>
-                            <span class="text-xs text-slate-400 truncate mt-1">${item.url}</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full whitespace-nowrap border border-slate-200 hidden sm:block">
-                                ${item.time}
-                            </span>
-                            <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all hover:shadow-md">
-                                <i data-lucide="eye" class="w-4 h-4"></i> View
-                            </a>
-                        </div>
+            const renderLink = (item, container) => {
+                container.innerHTML += `<div class="flex justify-between items-center border-b border-slate-100 p-3 hover:bg-slate-50 rounded-lg">
+                    <div class="flex-1 overflow-hidden pr-4">
+                        <span class="font-bold text-slate-700">${item.app || item.title}</span>
+                        <span class="text-[10px] text-slate-400 truncate block">${item.url}</span>
                     </div>
-                `;
-            });
+                    <button data-url="${item.url}" class="view-btn bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg flex items-center gap-2">
+                        <i data-lucide="eye" class="w-4 h-4"></i> View
+                    </button>
+                </div>`;
+            };
 
-            // Populate Chrome Data
-            const chromeContainer = document.getElementById("chromeList");
-            historyData.chrome.forEach(item => {
-                chromeContainer.innerHTML += `
-                    <div class="flex justify-between items-center border-b border-slate-100 pb-3 last:border-0 hover:bg-slate-50 p-3 rounded-lg transition-colors">
-                        <div class="flex flex-col flex-1 overflow-hidden pr-4">
-                            <span class="font-bold text-slate-700">${item.title}</span>
-                            <span class="text-xs text-slate-400 truncate mt-1">${item.url}</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full whitespace-nowrap border border-slate-200 hidden sm:block">
-                                ${item.time}
-                            </span>
-                            <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all hover:shadow-md">
-                                <i data-lucide="eye" class="w-4 h-4"></i> View
-                            </a>
-                        </div>
-                    </div>
-                `;
-            });
+            historyData.social.forEach(i => renderLink(i, igList));
+            historyData.chrome.forEach(i => renderLink(i, chromeList));
 
-            // Initialize Lucide Icons
+            // View Button Click Tracker
+            document.querySelectorAll(".view-btn").forEach(btn => {
+                btn.onclick = (e) => {
+                    const url = e.currentTarget.getAttribute("data-url");
+                    logActivity("VIEW_LINK", url);
+                    window.open(url, "_blank");
+                };
+            });
             lucide.createIcons();
+        }
 
-            // Login Logic
-            const loginForm = document.getElementById("loginForm");
-            const loginScreen = document.getElementById("loginScreen");
-            const dashboardScreen = document.getElementById("dashboardScreen");
-            const errorMessage = document.getElementById("errorMessage");
-            const logoutBtn = document.getElementById("logoutBtn");
-
-            loginForm.addEventListener("submit", (e) => {
-                e.preventDefault();
-                const usernameInput = document.getElementById("username").value;
-                const passwordInput = document.getElementById("password").value;
-
-                if (usernameInput === 'mywifi' && passwordInput === 'Cat7777') {
-                    // Success: Hide Error & Login Screen, Show Dashboard
-                    errorMessage.classList.add("hidden");
-                    loginScreen.classList.add("hidden");
-                    dashboardScreen.classList.remove("hidden");
-                    dashboardScreen.classList.add("flex"); // Tailwind requires flex here instead of default block
-                } else {
-                    // Fail: Show Error
-                    errorMessage.classList.remove("hidden");
-                }
-            });
-
-            // Logout Logic
-            logoutBtn.addEventListener("click", () => {
-                // Clear inputs
-                document.getElementById("username").value = '';
-                document.getElementById("password").value = '';
-                
-                // Hide Dashboard, Show Login Screen
-                dashboardScreen.classList.add("hidden");
-                dashboardScreen.classList.remove("flex");
-                loginScreen.classList.remove("hidden");
-                errorMessage.classList.add("hidden"); // Clear any previous errors
-            });
+        // Login Submit
+        loginForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            if (document.getElementById("username").value === 'mywifi' && document.getElementById("password").value === 'Cat7777') {
+                logActivity("LOGIN", "User logged into dashboard");
+                loginScreen.classList.add("hidden");
+                dashboardScreen.classList.remove("hidden");
+                dashboardScreen.classList.add("flex");
+                renderDashboard();
+            } else {
+                errorMessage.classList.remove("hidden");
+                logActivity("FAILED_ATTEMPT", `Invalid login: ${document.getElementById("username").value}`);
+            }
         });
+
+        init();
     </script>
 </body>
 </html>
-
 
