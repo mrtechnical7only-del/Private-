@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Admin Dashboard - Secure Tracking</title>
+    <title>WiFi Admin Dashboard - Live Tracking</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -15,7 +17,9 @@
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
 
+    <!-- ========================================== -->
     <!-- LOGIN SCREEN -->
+    <!-- ========================================== -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
             <div class="bg-blue-600 p-8 text-center text-white flex flex-col items-center">
@@ -54,7 +58,9 @@
         </div>
     </div>
 
-    <!-- DASHBOARD -->
+    <!-- ========================================== -->
+    <!-- DASHBOARD SCREEN -->
+    <!-- ========================================== -->
     <div id="dashboardScreen" class="hidden min-h-screen flex flex-col bg-slate-100">
         <nav class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-50">
             <div class="flex items-center gap-3">
@@ -89,10 +95,10 @@
                 <!-- LIVE TRACKER -->
                 <div class="bg-slate-800 text-white rounded-xl shadow-lg p-6">
                     <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-blue-400 border-b border-slate-700 pb-3">
-                        <i data-lucide="eye" class="w-5 h-5"></i> Live Activity Logs
+                        <i data-lucide="eye" class="w-5 h-5"></i> Live User Activity
                     </h2>
                     <div id="logContainer" class="space-y-3 max-h-80 overflow-y-auto font-mono text-[11px]">
-                        <p class="text-slate-500 italic">Listening for user activity...</p>
+                        <p class="text-slate-400 italic" id="waitingText">Connecting to Live Tracker...</p>
                     </div>
                 </div>
             </div>
@@ -129,19 +135,30 @@
         </main>
     </div>
 
+    <!-- ========================================== -->
+    <!-- FIREBASE AND JAVASCRIPT LOGIC -->
+    <!-- ========================================== -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // Import Firebase directly for browsers (CDN)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Environment Variables
-        const fConfig = JSON.parse(__firebase_config);
-        const aId = typeof __app_id !== 'undefined' ? __app_id : 'wifi-tracker-app';
-        
-        const app = initializeApp(fConfig);
-        const auth = getAuth(app);
+        // AAPKI FIREBASE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjBo9M9Rrth3AyInWeJx7EhE7PSHxAGLI",
+            authDomain: "wifi-tracker-dd951.firebaseapp.com",
+            projectId: "wifi-tracker-dd951",
+            storageBucket: "wifi-tracker-dd951.firebasestorage.app",
+            messagingSenderId: "418145640989",
+            appId: "1:418145640989:web:2fe906df05a25699b7dcf4",
+            measurementId: "G-JS1GQ2ECVG"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Browsing Data Arrays
         const historyData = {
             apps: [
                 { name: "Free Fire", duration: "2h 45m", status: "Active (Gaming)" },
@@ -168,38 +185,56 @@
             ]
         };
 
-        async function logActivity(action, data) {
-            if (!auth.currentUser) return;
+        // Firebase me data bhejney ka function
+        async function logToFirebase(action, detail) {
             try {
-                await addDoc(collection(db, 'artifacts', aId, 'public', 'data', 'activity_logs'), {
-                    action,
-                    data,
-                    timestamp: serverTimestamp(),
-                    device: "Android Device"
+                await addDoc(collection(db, "live_tracking_logs"), {
+                    action: action,
+                    detail: detail,
+                    timestamp: serverTimestamp()
                 });
-            } catch (e) { console.error(e); }
+            } catch (e) {
+                console.error("Tracking Error: ", e);
+            }
         }
 
-        function setupLogs() {
-            onSnapshot(collection(db, 'artifacts', aId, 'public', 'data', 'activity_logs'), (snap) => {
-                const logContainer = document.getElementById("logContainer");
+        // Live Logs ko sunne (listen) ka function
+        function startLiveTracking() {
+            const logContainer = document.getElementById("logContainer");
+            const q = query(collection(db, "live_tracking_logs"), orderBy("timestamp", "desc"));
+            
+            onSnapshot(q, (snapshot) => {
                 logContainer.innerHTML = "";
-                const docs = snap.docs.map(d => ({id: d.id, ...d.data()}))
-                                .sort((a,b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0));
                 
-                docs.forEach(log => {
-                    const time = log.timestamp ? new Date(log.timestamp.seconds * 1000).toLocaleTimeString() : '...';
+                if (snapshot.empty) {
+                    logContainer.innerHTML = "<p class='text-slate-400 italic'>Waiting for activity...</p>";
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const log = doc.data();
+                    // Date Format setting
+                    let timeString = "...";
+                    if (log.timestamp) {
+                        timeString = log.timestamp.toDate().toLocaleTimeString();
+                    }
+
+                    // Colour set karna 
+                    let colorClass = "text-blue-300 border-blue-400";
+                    if(log.action === "LOGIN") colorClass = "text-green-300 border-green-400";
+                    
                     logContainer.innerHTML += `
-                        <div class="log-entry p-2 bg-slate-700/50 rounded border-l-2 border-blue-400 mb-1">
-                            <span class="text-slate-400">[${time}]</span>
-                            <span class="text-blue-300 uppercase font-bold ml-1">${log.action}:</span>
-                            <span class="text-slate-100 ml-1">${log.data}</span>
+                        <div class="log-entry p-2 bg-slate-700/50 rounded border-l-2 ${colorClass} mb-1">
+                            <span class="text-slate-400">[${timeString}]</span>
+                            <span class="uppercase font-bold ml-1">${log.action}:</span>
+                            <span class="text-slate-100 ml-1">${log.detail}</span>
                         </div>
                     `;
                 });
             });
         }
 
+        // Data show karne ka function
         function renderData() {
             const appList = document.getElementById("appUsageList");
             const igList = document.getElementById("instagramList");
@@ -212,7 +247,7 @@
                 </div>`;
             });
 
-            const createRow = (item, container, type) => {
+            const createRow = (item, container) => {
                 container.innerHTML += `<div class="flex justify-between items-center border-b p-3 hover:bg-slate-50 transition-colors">
                     <div class="flex-1 overflow-hidden pr-4">
                         <span class="font-bold text-slate-700">${item.app || item.title}</span>
@@ -227,52 +262,57 @@
                 </div>`;
             };
 
-            historyData.social.forEach(i => createRow(i, igList, "INSTA"));
-            historyData.chrome.forEach(i => createRow(i, chromeList, "CHROME"));
+            historyData.social.forEach(i => createRow(i, igList));
+            historyData.chrome.forEach(i => createRow(i, chromeList));
 
+            // VIEW button par click karte hi Data Firebase pe jayega
             document.querySelectorAll(".v-btn").forEach(btn => {
                 btn.onclick = (e) => {
                     const url = e.currentTarget.dataset.url;
                     const title = e.currentTarget.dataset.title;
-                    logActivity("VIEW", title);
-                    window.open(url, "_blank");
+                    
+                    logToFirebase("VIEW", title); // Firebse me record send
+                    window.open(url, "_blank"); // Naye tab me link open
                 };
             });
             lucide.createIcons();
         }
 
-        // Auth and Event Listeners
-        window.onload = async () => {
-            try {
-                await signInAnonymously(auth);
-                setupLogs();
-            } catch (e) { console.error("Auth Init Error", e); }
+        // DOM Ready Function
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            
+            // Background me sabse pehle tracker on kar diya
+            startLiveTracking();
 
+            // Login check 
             document.getElementById("loginForm").onsubmit = (e) => {
                 e.preventDefault();
                 const u = document.getElementById("usernameInput").value;
                 const p = document.getElementById("passwordInput").value;
 
                 if (u === 'mywifi' && p === 'Cat7777') {
-                    logActivity("LOGIN", "Admin Access Granted");
+                    document.getElementById("errorMessage").classList.add("hidden");
                     document.getElementById("loginScreen").classList.add("hidden");
+                    
                     const dash = document.getElementById("dashboardScreen");
                     dash.classList.remove("hidden");
                     dash.classList.add("flex");
+                    
                     renderData();
+                    logToFirebase("LOGIN", "Admin Portal Opened"); 
                 } else {
                     document.getElementById("errorMessage").classList.remove("hidden");
-                    logActivity("FAILED_LOGIN", `Attempt with: ${u}`);
+                    logToFirebase("ERROR", `Failed login attempt with: ${u}`);
                 }
             };
 
             document.getElementById("logoutBtn").onclick = () => {
-                logActivity("LOGOUT", "User closed session");
-                location.reload();
+                location.reload(); 
             };
-            lucide.createIcons();
-        };
+        });
     </script>
 </body>
 </html>
+
 
