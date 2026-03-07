@@ -1,248 +1,286 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NextClick Pvt Ltd - Employee Portal</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+import React, { useState } from 'react';
+import { 
+  Wifi, 
+  Smartphone, 
+  Globe, 
+  LogOut, 
+  Lock, 
+  User, 
+  AlertCircle, 
+  ShieldCheck, 
+  MessageCircle,
+  Clock,
+  Activity,
+  Eye
+} from 'lucide-react';
 
-    <!-- ==================== LOGIN SECTION ==================== -->
-    <div id="login-section" class="min-h-screen flex flex-col justify-center items-center p-4">
-        <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
-            <!-- Header Section -->
-            <div class="bg-slate-900 px-6 py-8 text-center">
-                <div class="flex justify-center mb-4">
-                    <div class="bg-blue-500 p-3 rounded-full">
-                        <i data-lucide="shield-check" class="text-white w-8 h-8"></i>
-                    </div>
-                </div>
-                <h1 class="text-2xl font-bold text-white tracking-wide">NextClick Pvt Ltd</h1>
-                <p class="text-slate-400 text-sm mt-2 font-medium bg-slate-800 inline-block px-3 py-1 rounded-full">
-                    Only for our company employee's
-                </p>
-            </div>
+export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-            <!-- Login Form -->
-            <div class="p-8">
-                <h2 class="text-xl font-semibold text-slate-800 text-center mb-6">Employee Portal Login</h2>
-                
-                <!-- Error Message Container -->
-                <div id="error-message" class="hidden mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm flex items-start">
-                    <i data-lucide="alert-triangle" class="w-5 h-5 mr-2 flex-shrink-0"></i>
-                    <span id="error-text">Incorrect Username or Password. Please try again.</span>
-                </div>
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
+      {!isLoggedIn ? (
+        <LoginScreen onLogin={() => setIsLoggedIn(true)} />
+      ) : (
+        <Dashboard onLogout={() => setIsLoggedIn(false)} />
+      )}
+    </div>
+  );
+}
 
-                <form id="login-form" class="space-y-5">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-1">Username</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i data-lucide="user" class="h-5 w-5 text-slate-400"></i>
-                            </div>
-                            <input
-                                type="text"
-                                id="username"
-                                class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-slate-800 bg-slate-50 focus:bg-white outline-none"
-                                placeholder="Employee Username"
-                                required
-                            />
-                        </div>
-                    </div>
+// ==========================================
+// LOGIN SCREEN COMPONENT
+// ==========================================
+function LoginScreen({ onLogin }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-                    <div>
-                        <label class="block text-sm font-medium text-slate-600 mb-1">Password</label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i data-lucide="lock" class="h-5 w-5 text-slate-400"></i>
-                            </div>
-                            <input
-                                type="password"
-                                id="password"
-                                class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-slate-800 bg-slate-50 focus:bg-white outline-none"
-                                placeholder="••••••••"
-                                required
-                            />
-                        </div>
-                    </div>
+  const handleLogin = (e) => {
+    e.preventDefault();
+    // Strict credentials check
+    if (username === 'mywifi' && password === 'Cat7777') {
+      setError('');
+      onLogin();
+    } else {
+      setError('Galat Username ya Password. Kripya dobara try karein.');
+    }
+  };
 
-                    <button
-                        type="submit"
-                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors shadow-lg shadow-blue-200 flex justify-center items-center mt-2"
-                    >
-                        Secure Login <i data-lucide="chevron-right" class="w-5 h-5 ml-1"></i>
-                    </button>
-                </form>
-                
-                <div class="mt-6 text-center text-xs text-slate-400 border-t border-slate-100 pt-4">
-                    <p>Restricted Access. Internal Use Only.</p>
-                    <p>NextClick Pvt Ltd &copy; 2026</p>
-                </div>
-            </div>
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+        
+        <div className="bg-blue-600 p-8 text-center text-white flex flex-col items-center">
+          <div className="bg-white/20 p-4 rounded-full mb-4 shadow-inner">
+            <Wifi size={48} strokeWidth={2.5} />
+          </div>
+          <h1 className="text-3xl font-bold tracking-wider">WIFI</h1>
+          <p className="text-blue-100 mt-2 font-medium">Secure Admin Portal</p>
         </div>
-    </div>
 
-    <!-- ==================== DASHBOARD SECTION ==================== -->
-    <div id="dashboard-section" class="hidden min-h-screen bg-slate-100">
-        <!-- Navbar -->
-        <nav class="bg-slate-900 shadow-md">
-            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16 items-center">
-                    <div class="flex items-center">
-                        <i data-lucide="shield-check" class="text-blue-400 w-8 h-8 mr-2"></i>
-                        <span class="text-white font-bold text-xl tracking-wide">NextClick Pvt Ltd</span>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-slate-300 text-sm hidden sm:block">Welcome, <span id="display-username" class="font-semibold text-white"></span></span>
-                        <button 
-                            id="logout-btn"
-                            class="flex items-center text-sm bg-slate-800 hover:bg-slate-700 text-slate-200 py-2 px-3 rounded-lg transition-colors"
-                        >
-                            <i data-lucide="log-out" class="w-4 h-4 mr-2"></i>
-                            Logout
-                        </button>
-                    </div>
-                </div>
+        <div className="p-8">
+          <h2 className="text-xl font-semibold text-slate-700 mb-6 text-center">
+            Network mein login karein
+          </h2>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg flex items-center gap-2 text-sm">
+              <AlertCircle size={18} />
+              <span>{error}</span>
             </div>
-        </nav>
+          )}
 
-        <!-- Main Content Dashboard -->
-        <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1">Username</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <User size={18} className="text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  placeholder="Username darj karein"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock size={18} className="text-slate-400" />
+                </div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  placeholder="Password darj karein"
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2 mt-4"
+            >
+              Secure Login <ShieldCheck size={20} />
+            </button>
+          </form>
+
+          <div className="mt-6 text-center text-sm text-slate-500">
+            <p>Sirf authorized administrator ke liye. <br/> (Sign up option disabled hai)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// DASHBOARD COMPONENT
+// ==========================================
+function Dashboard({ onLogout }) {
+  // Final Data with Instagram and Chrome Links
+  const historyData = {
+    chrome: [
+      { id: 1, title: "Giftz Unique (Shopping)", url: "https://giftzunique.com/?country=IN", time: "09:00 AM" },
+      { id: 2, title: "ICC Men's T20 World Cup 2026", url: "https://www.icc-cricket.com/tournaments/mens-t20-world-cup-2026/matches", time: "09:45 AM" },
+      { id: 3, title: "Google Shared Document 1", url: "https://share.google/ZjX3nz37FxlbefOuR", time: "10:15 AM" },
+      { id: 4, title: "Google Shared Document 2", url: "https://share.google/ONMJYGKONlr8IPvkF", time: "11:30 AM" },
+      { id: 5, title: "Google Shared Document 3", url: "https://share.google/V6EQhrz7f7AElYVml", time: "12:00 PM" },
+      { id: 6, title: "Google Shared Document 4", url: "https://share.google/398w8XaGDtP80xkkY", time: "12:15 PM" },
+    ],
+    social: [
+      { id: 1, app: "Instagram Reel 1", url: "https://www.instagram.com/reel/DUN7dvNiZ3D/?igsh=bXJza3pucndzbncz", time: "01:10 PM" },
+      { id: 2, app: "Instagram Reel 2", url: "https://www.instagram.com/reel/DT9izP4jn9J/?igsh=MXdoMXR5Y3lyMG52dQ==", time: "01:15 PM" },
+      { id: 3, app: "Instagram Reel 3", url: "https://www.instagram.com/reel/DTGXjf0Ddq6/?igsh=MTNyYm84OWkwcmJxcw==", time: "01:22 PM" },
+      { id: 4, app: "Instagram Reel 4", url: "https://www.instagram.com/reel/DSeoAiCkz-n/?igsh=MWFseWFhaW5qcnN2ZQ==", time: "01:30 PM" },
+      { id: 5, app: "Instagram Reel 5", url: "https://www.instagram.com/reel/DSXl5vxEsqI/?igsh=MTNtNTBhdXJpdTB4NQ==", time: "01:45 PM" },
+      { id: 6, app: "Instagram Reel 6", url: "https://www.instagram.com/reel/DLEpyantZdc/?igsh=cXZldjAzOXByeGI=", time: "02:00 PM" },
+    ]
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-100">
+      <nav className="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
+        <div className="flex items-center gap-3">
+          <Wifi size={28} className="text-blue-400" />
+          <div>
+            <h1 className="text-xl font-bold tracking-wide">WIFI ADMIN</h1>
+            <p className="text-xs text-slate-400">Network Monitoring Dashboard</p>
+          </div>
+        </div>
+        <button 
+          onClick={onLogout}
+          className="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+        >
+          <LogOut size={16} />
+          Logout
+        </button>
+      </nav>
+
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        {/* Left Column: Connected Devices */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3">
+              <Activity className="text-green-500" size={20} />
+              Connected Device (1)
+            </h2>
             
-            <!-- Welcome Banner -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 flex flex-col sm:flex-row items-center justify-between">
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-2 h-full bg-green-500"></div>
+              <div className="flex items-start gap-4">
+                <div className="bg-white p-3 rounded-full shadow-sm text-blue-600">
+                  <Smartphone size={32} strokeWidth={1.5} />
+                </div>
                 <div>
-                    <h2 class="text-2xl font-bold text-slate-800">Employee Dashboard</h2>
-                    <p class="text-slate-500 mt-1">You are one of our selected employees. This special offer is exclusively for you.</p>
+                  <h3 className="font-bold text-slate-800 text-lg">Android Device</h3>
+                  <div className="text-sm text-slate-500 mt-1 space-y-1">
+                    <p><span className="font-medium">IP Address:</span> 192.168.1.104</p>
+                    <p><span className="font-medium">MAC Address:</span> A1:B2:C3:D4:E5:F6</p>
+                    <p><span className="font-medium">Status:</span> <span className="text-green-600 font-semibold">Active Now</span></p>
+                  </div>
                 </div>
-                <div class="mt-4 sm:mt-0 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium border border-blue-100 flex items-center">
-                    <i data-lucide="user" class="w-5 h-5 mr-2"></i>
-                    Verified Employee Status
-                </div>
+              </div>
             </div>
 
-            <!-- Offer Card -->
-            <div class="bg-gradient-to-br from-indigo-900 via-blue-900 to-slate-900 rounded-3xl shadow-2xl overflow-hidden relative">
-                
-                <!-- Decorative elements -->
-                <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mt-20 -mr-20 blur-3xl"></div>
-                <div class="absolute bottom-0 left-0 w-40 h-40 bg-blue-500 opacity-10 rounded-full -mb-10 -ml-10 blur-2xl"></div>
+            <div className="mt-6 p-4 bg-blue-50 text-blue-800 rounded-lg text-sm flex gap-3">
+              <ShieldCheck className="flex-shrink-0" size={20} />
+              <p>Network puri tarah se secure hai. Yeh device pichle 6 ghante se connected hai.</p>
+            </div>
+          </div>
+        </div>
 
-                <div class="p-8 sm:p-10 relative z-10">
-                    <div class="flex items-center justify-center sm:justify-start space-x-3 mb-6">
-                        <div class="bg-yellow-400 p-3 rounded-xl shadow-lg">
-                            <i data-lucide="gift" class="w-8 h-8 text-indigo-900"></i>
-                        </div>
-                        <h3 class="text-3xl font-extrabold text-white tracking-tight">Exclusive Mega Offer!</h3>
-                    </div>
-                    
-                    <p class="text-blue-100 text-lg sm:text-xl max-w-2xl leading-relaxed mb-8">
-                        If you add money to our wallet using your <span class="text-yellow-400 font-bold">HDFC Credit Card</span> and maintain the balance for 35 days, you will receive an <span class="text-yellow-400 font-bold border-b border-yellow-400">₹10,000 Amazon E-Gift Card</span>! As a valued employee, this exclusive offer is for selected individuals only.
-                    </p>
+        {/* Right Column: Browsing History Categories */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <Clock className="text-blue-500" size={24} />
+              Detailed Browsing History
+            </h2>
 
-                    <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 md:p-8">
-                        <h4 class="text-xl font-semibold text-white mb-6 flex items-center border-b border-white/10 pb-4">
-                            <i data-lucide="alert-triangle" class="w-6 h-6 mr-2 text-yellow-400"></i>
-                            Offer Rules & Terms
-                        </h4>
-                        
-                        <ul class="space-y-5">
-                            <li class="flex items-start">
-                                <i data-lucide="credit-card" class="w-6 h-6 text-blue-300 mr-4 flex-shrink-0 mt-0.5"></i>
-                                <p class="text-slate-100 font-medium">1. This offer is strictly valid only on <strong class="text-white">HDFC Credit Cards</strong>.</p>
-                            </li>
-                            
-                            <li class="flex items-start">
-                                <div class="relative">
-                                    <i data-lucide="credit-card" class="w-6 h-6 text-red-400 mr-4 flex-shrink-0 mt-0.5 opacity-50"></i>
-                                    <div class="absolute top-3 left-0 w-6 h-0.5 bg-red-500 -rotate-45"></div>
-                                </div>
-                                <p class="text-slate-100 font-medium">2. <strong class="text-red-300 uppercase">Debit cards are NOT allowed.</strong></p>
-                            </li>
-
-                            <li class="flex items-start">
-                                <i data-lucide="calendar" class="w-6 h-6 text-blue-300 mr-4 flex-shrink-0 mt-0.5"></i>
-                                <p class="text-slate-100 font-medium">3. The offer is valid strictly from <strong class="text-yellow-300">1st Feb 2026 to 1st March 2026</strong>.</p>
-                            </li>
-
-                            <li class="flex items-start">
-                                <i data-lucide="lock" class="w-6 h-6 text-blue-300 mr-4 flex-shrink-0 mt-0.5"></i>
-                                <p class="text-slate-100 font-medium">4. The amount must be maintained in the wallet for <strong class="text-white">exactly 35 days</strong>, after which you can transfer it via UPI.</p>
-                            </li>
-
-                            <li class="flex items-start">
-                                <i data-lucide="check-circle" class="w-6 h-6 text-green-400 mr-4 flex-shrink-0 mt-0.5"></i>
-                                <p class="text-slate-100 font-medium">5. The <strong class="text-yellow-300">₹10,000 Amazon E-Gift Voucher</strong> will be sent to your official company email ID immediately upon completion of the 35-day period.</p>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div class="mt-8 sm:flex sm:space-x-4">
-                        <!-- Yahan button ko anchor tag (a) se replace kiya gaya hai Amazon redirect ke liye -->
-                        <a href="https://www.amazon.in" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto bg-yellow-400 hover:bg-yellow-500 text-indigo-900 font-bold py-4 px-8 rounded-xl transition-all shadow-[0_0_20px_rgba(250,204,21,0.3)] hover:shadow-[0_0_25px_rgba(250,204,21,0.5)] flex justify-center items-center cursor-pointer">
-                            Add Money to Wallet Now <i data-lucide="chevron-right" class="w-5 h-5 ml-1"></i>
+            <div className="space-y-8">
+              
+              {/* Instagram / Social Media Category */}
+              <section>
+                <div className="flex items-center gap-2 mb-4 bg-pink-50 p-2 rounded-lg text-pink-700 font-semibold">
+                  <MessageCircle size={20} />
+                  <h3>Instagram History</h3>
+                </div>
+                <div className="space-y-3 pl-2">
+                  {historyData.social.map((item) => (
+                    <div key={item.id} className="flex justify-between items-center border-b border-slate-100 pb-3 last:border-0 hover:bg-slate-50 p-3 rounded-lg transition-colors">
+                      <div className="flex flex-col flex-1 overflow-hidden pr-4">
+                        <span className="font-bold text-slate-700">{item.app}</span>
+                        <span className="text-xs text-slate-400 truncate mt-1">{item.url}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full whitespace-nowrap border border-slate-200 hidden sm:block">
+                          {item.time}
+                        </span>
+                        <a 
+                          href={item.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
+                        >
+                          <Eye size={16} /> View
                         </a>
+                      </div>
                     </div>
-
+                  ))}
                 </div>
+              </section>
+
+              {/* Chrome Category */}
+              <section>
+                <div className="flex items-center gap-2 mb-4 bg-blue-50 p-2 rounded-lg text-blue-700 font-semibold">
+                  <Globe size={20} />
+                  <h3>Chrome History</h3>
+                </div>
+                <div className="space-y-3 pl-2">
+                  {historyData.chrome.map((item) => (
+                    <div key={item.id} className="flex justify-between items-center border-b border-slate-100 pb-3 last:border-0 hover:bg-slate-50 p-3 rounded-lg transition-colors">
+                      <div className="flex flex-col flex-1 overflow-hidden pr-4">
+                        <span className="font-bold text-slate-700">{item.title}</span>
+                        <span className="text-xs text-slate-400 truncate mt-1">{item.url}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full whitespace-nowrap border border-slate-200 hidden sm:block">
+                          {item.time}
+                        </span>
+                        <a 
+                          href={item.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
+                        >
+                          <Eye size={16} /> View
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
             </div>
+          </div>
+        </div>
 
-        </main>
+      </main>
     </div>
-
-    <!-- Application Logic -->
-    <script>
-        // Initialize Icons
-        lucide.createIcons();
-
-        // DOM Elements
-        const loginSection = document.getElementById('login-section');
-        const dashboardSection = document.getElementById('dashboard-section');
-        const loginForm = document.getElementById('login-form');
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const errorMessage = document.getElementById('error-message');
-        const displayUsername = document.getElementById('display-username');
-        const logoutBtn = document.getElementById('logout-btn');
-
-        // Login Logic
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const user = usernameInput.value;
-            const pass = passwordInput.value;
-
-            if (user === 'Adil7only' && pass === 'Doctor@786') {
-                // Login Success
-                errorMessage.classList.add('hidden');
-                loginSection.classList.add('hidden');
-                
-                // Show Dashboard and update name
-                displayUsername.textContent = user;
-                dashboardSection.classList.remove('hidden');
-            } else {
-                // Login Failed
-                errorMessage.classList.remove('hidden');
-            }
-        });
-
-        // Logout Logic
-        logoutBtn.addEventListener('click', function() {
-            // Hide Dashboard
-            dashboardSection.classList.add('hidden');
-            
-            // Clear inputs and show login
-            usernameInput.value = '';
-            passwordInput.value = '';
-            errorMessage.classList.add('hidden');
-            loginSection.classList.remove('hidden');
-        });
-    </script>
-</body>
-</html>
+  );
+}
 
 
