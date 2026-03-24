@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WiFi Admin Dashboard - Live Tracking</title>
+    <title>Database Tracking - Secure Portal</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons -->
@@ -13,9 +13,14 @@
         body { font-family: 'Inter', sans-serif; }
         .log-entry { animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
-        /* Custom scrollbar for tracker */
+        /* Custom scrollbar */
         #logContainer::-webkit-scrollbar { width: 6px; }
         #logContainer::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        /* Loader animation */
+        .loader { border: 4px solid #1e293b; border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .pulse-text { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen relative">
@@ -39,19 +44,32 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- LOADING SCREEN (5 SECONDS) -->
+    <!-- ========================================== -->
+    <div id="loadingScreen" class="fixed inset-0 bg-slate-900 z-[200] hidden flex-col items-center justify-center text-white">
+        <div class="loader mb-6"></div>
+        <h2 class="text-2xl font-bold tracking-widest mb-2 flex items-center gap-2">
+            <i data-lucide="database" class="text-blue-500 w-6 h-6"></i>
+            DATABASE TRACKING
+        </h2>
+        <p class="text-slate-400 font-mono text-sm pulse-text">Collecting database from email...</p>
+        <p class="text-slate-500 font-mono text-xs mt-2" id="loadingPercentage">0%</p>
+    </div>
+
+    <!-- ========================================== -->
     <!-- LOGIN SCREEN -->
     <!-- ========================================== -->
     <div id="loginScreen" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
         <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
             <div class="bg-blue-600 p-8 text-center text-white flex flex-col items-center">
                 <div class="bg-white/20 p-4 rounded-full mb-4 shadow-inner">
-                    <i data-lucide="wifi" class="w-12 h-12" stroke-width="2.5"></i>
+                    <i data-lucide="database" class="w-12 h-12" stroke-width="2.5"></i>
                 </div>
-                <h1 class="text-3xl font-bold tracking-wider">WIFI</h1>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-wider">DATABASE TRACKING</h1>
                 <p class="text-blue-100 mt-2 font-medium">Secure Admin Portal</p>
             </div>
             <div class="p-8">
-                <h2 class="text-xl font-semibold text-slate-700 mb-6 text-center">Login to Network</h2>
+                <h2 class="text-xl font-semibold text-slate-700 mb-6 text-center">Login to Database</h2>
                 <div id="errorMessage" class="hidden mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg flex items-center gap-2 text-sm">
                     <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
                     <span>Invalid Username or Password.</span>
@@ -61,14 +79,14 @@
                         <label class="block text-sm font-medium text-slate-600 mb-1">Username</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></span>
-                            <input type="text" id="usernameInput" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Username" required />
+                            <input type="text" id="usernameInput" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter Username" required />
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-600 mb-1">Password</label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3 flex items-center"><i data-lucide="lock" class="w-5 h-5 text-slate-400"></i></span>
-                            <input type="password" id="passwordInput" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Password" required />
+                            <input type="password" id="passwordInput" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter Password" required />
                         </div>
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-lg flex justify-center items-center gap-2 mt-4 transition-all">
@@ -83,29 +101,53 @@
     <!-- DASHBOARD SCREEN -->
     <!-- ========================================== -->
     <div id="dashboardScreen" class="hidden min-h-screen flex flex-col bg-slate-100">
-        <nav class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-50">
+        <nav class="bg-slate-900 text-white px-4 sm:px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-50">
             <div class="flex items-center gap-3">
-                <i data-lucide="wifi" class="w-7 h-7 text-blue-400"></i>
+                <i data-lucide="database" class="w-6 h-6 sm:w-7 sm:h-7 text-blue-400"></i>
                 <div>
-                    <h1 class="text-xl font-bold tracking-wide">WIFI ADMIN</h1>
-                    <p id="userRoleBadge" class="text-xs text-blue-300 font-medium">Role: Unknown</p>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-wide">DATABASE TRACKING</h1>
+                    <p id="userRoleBadge" class="text-[10px] sm:text-xs text-blue-300 font-medium">Role: Unknown</p>
                 </div>
             </div>
-            <button id="logoutBtn" class="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+            <button id="logoutBtn" class="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors">
+                <i data-lucide="log-out" class="w-4 h-4"></i> <span class="hidden sm:inline">Logout</span>
             </button>
         </nav>
 
-        <main class="flex-1 p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <main class="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Left Side -->
             <div class="lg:col-span-1 space-y-6">
-                <!-- Connected Device Info -->
+                
+                <!-- NEW EMAIL INFO SECTION -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3">
+                        <i data-lucide="mail" class="text-blue-500 w-5 h-5"></i> Target Account
+                    </h2>
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 relative">
+                        <div class="absolute top-0 right-0 w-2 h-full bg-blue-500 rounded-r-lg"></div>
+                        <div class="flex items-start gap-4">
+                            <div class="bg-white p-3 rounded-full shadow-sm text-blue-600 mt-1">
+                                <i data-lucide="user-circle" class="w-8 h-8"></i>
+                            </div>
+                            <div class="w-full">
+                                <h3 class="font-bold text-slate-800 text-base sm:text-lg mb-2 break-all">skmhd.imran009@gmail.com</h3>
+                                <div class="space-y-1">
+                                    <p class="text-sm text-slate-500 flex justify-between"><span class="font-medium">Data Sync:</span> <span class="text-green-600 font-bold">100% Complete</span></p>
+                                    <p class="text-sm text-slate-500 flex justify-between"><span class="font-medium">Source:</span> <span class="text-slate-700">Google Cloud Sync</span></p>
+                                    <p class="text-xs text-slate-400 mt-2 pt-2 border-t">All history below is collected from this email address in real-time.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OLD DEVICE INFO SECTION (Temporarily Hidden) -->
+                <div id="deviceInfoCard" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3">
                         <i data-lucide="activity" class="text-green-500 w-5 h-5"></i> Connected Device
                     </h2>
                     <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 relative">
-                        <div class="absolute top-0 right-0 w-2 h-full bg-green-500"></div>
+                        <div class="absolute top-0 right-0 w-2 h-full bg-green-500 rounded-r-lg"></div>
                         <div class="flex items-start gap-4">
                             <div class="bg-white p-3 rounded-full shadow-sm text-blue-600 mt-1"><i data-lucide="smartphone" class="w-8 h-8"></i></div>
                             <div class="w-full">
@@ -136,7 +178,7 @@
             <div class="lg:col-span-2 space-y-8">
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                     <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b pb-4">
-                        <i data-lucide="clock" class="text-blue-500 w-6 h-6"></i> Detailed Browsing History
+                        <i data-lucide="clock" class="text-blue-500 w-6 h-6"></i> Extracted History Logs
                     </h2>
 
                     <section class="mb-8">
@@ -288,6 +330,7 @@
 
             appList.innerHTML = ''; igList.innerHTML = ''; chromeList.innerHTML = '';
 
+            // This generates data for the hidden device info card (can be used later)
             document.getElementById('deviceIp').textContent = generateRandomIP();
             document.getElementById('deviceMac').textContent = generateRandomMAC();
 
@@ -393,7 +436,6 @@
             }
         });
 
-
         // Initialize App
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
@@ -403,37 +445,65 @@
                 const u = document.getElementById("usernameInput").value;
                 const p = document.getElementById("passwordInput").value;
 
+                let isValidLogin = false;
+                let roleStr = '';
+
+                // Check credentials
                 if (u === 'mywifi' && p === 'Cat7777') { 
                     currentUserRole = 'admin';
                     document.getElementById("userRoleBadge").innerText = "Role: Master Admin";
-                    
-                    document.getElementById("errorMessage").classList.add("hidden");
-                    document.getElementById("loginScreen").classList.add("hidden");
-                    const dash = document.getElementById("dashboardScreen");
-                    dash.classList.remove("hidden");
-                    dash.classList.add("flex");
-                    
-                    document.getElementById("liveTrackerPanel").classList.remove("hidden");
-                    startLiveTracking(); 
-                    
-                    renderData();
-                    logToFirebase("LOGIN", "Admin (mywifi) logged in"); 
+                    isValidLogin = true;
+                    roleStr = "Admin";
                 } 
                 else if (u === 'wifi' && p === 'Cat1234') { 
                     currentUserRole = 'user';
                     document.getElementById("userRoleBadge").innerText = "Role: Normal User";
-                    
+                    isValidLogin = true;
+                    roleStr = "Target User";
+                } 
+                
+                if (isValidLogin) {
+                    // Hide Error and Login Screen
                     document.getElementById("errorMessage").classList.add("hidden");
                     document.getElementById("loginScreen").classList.add("hidden");
-                    const dash = document.getElementById("dashboardScreen");
-                    dash.classList.remove("hidden");
-                    dash.classList.add("flex");
                     
-                    document.getElementById("liveTrackerPanel").classList.add("hidden");
-                    if (unsubscribeTracker) unsubscribeTracker(); 
-                    
-                    renderData();
-                    logToFirebase("LOGIN", "Target User (wifi) logged in"); 
+                    // Show Loading Screen for 5 seconds
+                    const loader = document.getElementById("loadingScreen");
+                    loader.classList.remove("hidden");
+                    loader.classList.add("flex");
+
+                    // Fake percentage logic for visual effect
+                    const percentText = document.getElementById("loadingPercentage");
+                    let perc = 0;
+                    const interval = setInterval(() => {
+                        perc += Math.floor(Math.random() * 15) + 5;
+                        if(perc > 99) perc = 99;
+                        percentText.innerText = `${perc}% Synchronized...`;
+                    }, 500);
+
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        // Hide Loading Screen
+                        loader.classList.add("hidden");
+                        loader.classList.remove("flex");
+
+                        // Show Dashboard
+                        const dash = document.getElementById("dashboardScreen");
+                        dash.classList.remove("hidden");
+                        dash.classList.add("flex");
+
+                        // Apply Role Logic
+                        if (currentUserRole === 'admin') {
+                            document.getElementById("liveTrackerPanel").classList.remove("hidden");
+                            startLiveTracking(); 
+                        } else {
+                            document.getElementById("liveTrackerPanel").classList.add("hidden");
+                            if (unsubscribeTracker) unsubscribeTracker(); 
+                        }
+                        
+                        renderData();
+                        logToFirebase("LOGIN", `${roleStr} logged into Database Portal`);
+                    }, 5000); // 5 seconds wait
                 } 
                 else {
                     document.getElementById("errorMessage").classList.remove("hidden");
