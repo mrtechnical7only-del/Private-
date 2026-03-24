@@ -13,9 +13,31 @@
         body { font-family: 'Inter', sans-serif; }
         .log-entry { animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        /* Custom scrollbar for tracker */
+        #logContainer::-webkit-scrollbar { width: 6px; }
+        #logContainer::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 antialiased min-h-screen">
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen relative">
+
+    <!-- ========================================== -->
+    <!-- INTERNAL WEB VIEWER MODAL (NEW) -->
+    <!-- ========================================== -->
+    <div id="viewerModal" class="fixed inset-0 bg-slate-900/95 z-[100] hidden flex-col backdrop-blur-sm">
+        <div class="flex justify-between items-center p-3 sm:p-4 bg-slate-900 text-white border-b border-slate-700 shadow-lg">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <i data-lucide="shield-alert" class="text-green-400 w-5 h-5 flex-shrink-0"></i>
+                <span id="viewerTitle" class="font-mono text-xs sm:text-sm truncate text-green-400">Tracking: Loading...</span>
+            </div>
+            <button id="closeViewerBtn" class="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-600/20">
+                <i data-lucide="x-circle" class="w-4 h-4"></i> Close & Stop
+            </button>
+        </div>
+        <!-- Iframe jisme website khulegi -->
+        <div class="flex-1 w-full bg-slate-800 p-2 sm:p-6">
+            <iframe id="viewerFrame" class="w-full h-full bg-white rounded-xl shadow-2xl border-4 border-slate-700" src=""></iframe>
+        </div>
+    </div>
 
     <!-- ========================================== -->
     <!-- LOGIN SCREEN -->
@@ -105,7 +127,7 @@
                     <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-blue-400 border-b border-slate-700 pb-3">
                         <i data-lucide="eye" class="w-5 h-5"></i> Live User Activity
                     </h2>
-                    <div id="logContainer" class="space-y-3 max-h-80 overflow-y-auto font-mono text-[11px]">
+                    <div id="logContainer" class="space-y-3 max-h-96 overflow-y-auto font-mono text-[11px] pr-2">
                         <p class="text-slate-400 italic" id="waitingText">Connecting to Live Tracker...</p>
                     </div>
                 </div>
@@ -147,7 +169,6 @@
     <!-- FIREBASE AND JAVASCRIPT LOGIC -->
     <!-- ========================================== -->
     <script type="module">
-        // Import Firebase directly for browsers (CDN)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -162,14 +183,13 @@
             measurementId: "G-JS1GQ2ECVG"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Track current user role
         let currentUserRole = null; 
+        let viewStartTime = 0;
+        let currentViewTitle = "";
 
-        // Browsing Data Arrays
         const historyData = {
             apps: [
                 { name: "Free Fire", duration: "2h 45m", status: "Active (Gaming)" },
@@ -196,38 +216,30 @@
             ]
         };
 
-        // Firebase me data bhejney ka function
+        // Send log to Firebase
         async function logToFirebase(action, detail) {
             try {
                 await addDoc(collection(db, "live_tracking_logs"), {
                     action: action,
                     detail: detail,
-                    role: currentUserRole, // Track kisne click kiya
+                    role: currentUserRole,
                     timestamp: serverTimestamp()
                 });
-            } catch (e) {
-                console.error("Tracking Error: ", e);
-            }
+            } catch (e) { console.error("Tracking Error: ", e); }
         }
 
-        // Random IP Address Generator
-        function generateRandomIP() {
-            return `192.168.1.${Math.floor(Math.random() * 253) + 2}`;
-        }
-
-        // Random MAC Address Generator
+        function generateRandomIP() { return `192.168.1.${Math.floor(Math.random() * 253) + 2}`; }
         function generateRandomMAC() {
-            const hexDigits = "0123456789ABCDEF";
+            const hex = "0123456789ABCDEF";
             let mac = "";
             for (let i = 0; i < 6; i++) {
-                mac += hexDigits.charAt(Math.floor(Math.random() * 16));
-                mac += hexDigits.charAt(Math.floor(Math.random() * 16));
+                mac += hex.charAt(Math.floor(Math.random() * 16)) + hex.charAt(Math.floor(Math.random() * 16));
                 if (i != 5) mac += ":";
             }
             return mac;
         }
 
-        // Live Logs ko sunne (listen) ka function (Sirf Admin ke liye)
+        // Setup Live Tracking Listener
         let unsubscribeTracker = null;
         function startLiveTracking() {
             const logContainer = document.getElementById("logContainer");
@@ -235,7 +247,6 @@
             
             unsubscribeTracker = onSnapshot(q, (snapshot) => {
                 logContainer.innerHTML = "";
-                
                 if (snapshot.empty) {
                     logContainer.innerHTML = "<p class='text-slate-400 italic'>Waiting for activity...</p>";
                     return;
@@ -244,40 +255,36 @@
                 snapshot.forEach((doc) => {
                     const log = doc.data();
                     let timeString = "...";
-                    if (log.timestamp) {
-                        timeString = log.timestamp.toDate().toLocaleTimeString();
-                    }
+                    if (log.timestamp) timeString = log.timestamp.toDate().toLocaleTimeString();
 
-                    // Colour set karna 
+                    // Colors based on action type
                     let colorClass = "text-blue-300 border-blue-400";
                     if(log.action === "LOGIN") colorClass = "text-green-300 border-green-400";
+                    if(log.action === "VIEW_STARTED") colorClass = "text-yellow-300 border-yellow-400 bg-yellow-900/20";
+                    if(log.action === "VIEW_ENDED") colorClass = "text-purple-300 border-purple-400 bg-purple-900/20";
                     
                     let roleBadge = log.role === 'admin' ? '[Admin]' : '[User]';
 
                     logContainer.innerHTML += `
-                        <div class="log-entry p-2 bg-slate-700/50 rounded border-l-2 ${colorClass} mb-1">
+                        <div class="log-entry p-2 bg-slate-700/50 rounded border-l-2 ${colorClass} mb-2 shadow-sm">
                             <span class="text-slate-400">[${timeString}]</span>
                             <span class="text-slate-300 text-[10px]">${roleBadge}</span>
                             <span class="uppercase font-bold ml-1">${log.action}:</span>
-                            <span class="text-slate-100 ml-1">${log.detail}</span>
+                            <span class="text-slate-100 ml-1 block mt-1">${log.detail}</span>
                         </div>
                     `;
                 });
             });
         }
 
-        // Data show karne ka function
+        // Render Lists
         function renderData() {
             const appList = document.getElementById("appUsageList");
             const igList = document.getElementById("instagramList");
             const chromeList = document.getElementById("chromeList");
 
-            // Clear lists first to prevent duplicates on re-login
-            appList.innerHTML = '';
-            igList.innerHTML = '';
-            chromeList.innerHTML = '';
+            appList.innerHTML = ''; igList.innerHTML = ''; chromeList.innerHTML = '';
 
-            // Inject Random Device Info
             document.getElementById('deviceIp').textContent = generateRandomIP();
             document.getElementById('deviceMac').textContent = generateRandomMAC();
 
@@ -296,7 +303,7 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="text-xs text-slate-500 hidden sm:block">${item.time}</span>
-                        <button class="v-btn bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg flex items-center gap-1" data-url="${item.url}" data-title="${item.app || item.title}">
+                        <button class="v-btn bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg flex items-center gap-1 shadow-md hover:shadow-lg transition-all" data-url="${item.url}" data-title="${item.app || item.title}">
                             <i data-lucide="eye" class="w-4 h-4"></i> View
                         </button>
                     </div>
@@ -306,81 +313,105 @@
             historyData.social.forEach(i => createRow(i, igList));
             historyData.chrome.forEach(i => createRow(i, chromeList));
 
-            // VIEW button par click karte hi Data Firebase pe jayega
+            // INTERNAL VIEWER LOGIC (STOPWATCH)
             document.querySelectorAll(".v-btn").forEach(btn => {
                 btn.onclick = (e) => {
                     const url = e.currentTarget.dataset.url;
                     const title = e.currentTarget.dataset.title;
                     
-                    logToFirebase("VIEW", title); // Firebse me record send
-                    window.open(url, "_blank"); // Naye tab me link open
+                    // Start timer
+                    viewStartTime = Date.now();
+                    currentViewTitle = title;
+                    
+                    // Show Modal
+                    document.getElementById('viewerTitle').innerText = `Intercepting & Tracking: ${title}`;
+                    document.getElementById('viewerFrame').src = url;
+                    const modal = document.getElementById('viewerModal');
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    
+                    logToFirebase("VIEW_STARTED", `${title} khola gaya hai. Timer on.`);
                 };
             });
             lucide.createIcons();
         }
 
-        // DOM Ready Function
+        // CLOSING VIEWER LOGIC
+        document.getElementById('closeViewerBtn').onclick = () => {
+            if(viewStartTime === 0) return;
+
+            // Calculate duration
+            const durationMs = Date.now() - viewStartTime;
+            const totalSeconds = Math.floor(durationMs / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            
+            let timeSpent = `${totalSeconds} seconds`;
+            if(minutes > 0) timeSpent = `${minutes} min ${seconds} sec`;
+
+            // Log total time to Firebase
+            logToFirebase("VIEW_ENDED", `${currentViewTitle} ko ${timeSpent} tak dekha gaya.`);
+
+            // Reset & Hide Modal
+            viewStartTime = 0;
+            currentViewTitle = "";
+            const modal = document.getElementById('viewerModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('viewerFrame').src = ""; // Stop video/audio
+        };
+
+        // Initialize App
         document.addEventListener("DOMContentLoaded", () => {
             lucide.createIcons();
 
-            // Login check 
             document.getElementById("loginForm").onsubmit = (e) => {
                 e.preventDefault();
                 const u = document.getElementById("usernameInput").value;
                 const p = document.getElementById("passwordInput").value;
 
-                // 1. ADMIN LOGIN CHECK
-                if (u === 'mywifi' && p === 'Cat7777') {
+                if (u === 'mywifi' && p === 'Cat7777') { // ADMIN
                     currentUserRole = 'admin';
                     document.getElementById("userRoleBadge").innerText = "Role: Master Admin";
                     
-                    // Show Dashboard
                     document.getElementById("errorMessage").classList.add("hidden");
                     document.getElementById("loginScreen").classList.add("hidden");
                     const dash = document.getElementById("dashboardScreen");
                     dash.classList.remove("hidden");
                     dash.classList.add("flex");
                     
-                    // Show Live Tracker for Admin
                     document.getElementById("liveTrackerPanel").classList.remove("hidden");
                     startLiveTracking(); 
                     
                     renderData();
-                    logToFirebase("LOGIN", "Admin logged in"); 
+                    logToFirebase("LOGIN", "Admin (mywifi) logged in"); 
                 } 
-                // 2. NORMAL USER LOGIN CHECK
-                else if (u === 'wifi' && p === 'Cat1234') {
+                else if (u === 'wifi' && p === 'Cat1234') { // NORMAL USER
                     currentUserRole = 'user';
                     document.getElementById("userRoleBadge").innerText = "Role: Normal User";
                     
-                    // Show Dashboard
                     document.getElementById("errorMessage").classList.add("hidden");
                     document.getElementById("loginScreen").classList.add("hidden");
                     const dash = document.getElementById("dashboardScreen");
                     dash.classList.remove("hidden");
                     dash.classList.add("flex");
                     
-                    // Hide Live Tracker for User
                     document.getElementById("liveTrackerPanel").classList.add("hidden");
-                    if (unsubscribeTracker) {
-                        unsubscribeTracker(); // Stop listening for user
-                    }
+                    if (unsubscribeTracker) unsubscribeTracker(); 
                     
                     renderData();
-                    logToFirebase("LOGIN", "Normal User logged in"); 
+                    logToFirebase("LOGIN", "Target User (wifi) logged in"); 
                 } 
-                // 3. INVALID CREDENTIALS
                 else {
                     document.getElementById("errorMessage").classList.remove("hidden");
                 }
             };
 
-            document.getElementById("logoutBtn").onclick = () => {
-                location.reload(); 
-            };
+            document.getElementById("logoutBtn").onclick = () => location.reload(); 
         });
     </script>
 </body>
 </html>
+
 
 
