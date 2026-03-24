@@ -21,7 +21,7 @@
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen relative">
 
     <!-- ========================================== -->
-    <!-- INTERNAL WEB VIEWER MODAL (NEW) -->
+    <!-- INTERNAL WEB VIEWER MODAL -->
     <!-- ========================================== -->
     <div id="viewerModal" class="fixed inset-0 bg-slate-900/95 z-[100] hidden flex-col backdrop-blur-sm">
         <div class="flex justify-between items-center p-3 sm:p-4 bg-slate-900 text-white border-b border-slate-700 shadow-lg">
@@ -30,10 +30,9 @@
                 <span id="viewerTitle" class="font-mono text-xs sm:text-sm truncate text-green-400">Tracking: Loading...</span>
             </div>
             <button id="closeViewerBtn" class="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-600/20">
-                <i data-lucide="x-circle" class="w-4 h-4"></i> Close & Stop
+                <i data-lucide="x-circle" class="w-4 h-4"></i> Close & Stop Tracker
             </button>
         </div>
-        <!-- Iframe jisme website khulegi -->
         <div class="flex-1 w-full bg-slate-800 p-2 sm:p-6">
             <iframe id="viewerFrame" class="w-full h-full bg-white rounded-xl shadow-2xl border-4 border-slate-700" src=""></iframe>
         </div>
@@ -187,8 +186,11 @@
         const db = getFirestore(app);
 
         let currentUserRole = null; 
+        
+        // Viewer State Logic
         let viewStartTime = 0;
         let currentViewTitle = "";
+        let isViewerOpen = false;
 
         const historyData = {
             apps: [
@@ -262,6 +264,7 @@
                     if(log.action === "LOGIN") colorClass = "text-green-300 border-green-400";
                     if(log.action === "VIEW_STARTED") colorClass = "text-yellow-300 border-yellow-400 bg-yellow-900/20";
                     if(log.action === "VIEW_ENDED") colorClass = "text-purple-300 border-purple-400 bg-purple-900/20";
+                    if(log.action === "VIEW_EXTERNAL") colorClass = "text-orange-300 border-orange-400 bg-orange-900/20";
                     
                     let roleBadge = log.role === 'admin' ? '[Admin]' : '[User]';
 
@@ -313,34 +316,43 @@
             historyData.social.forEach(i => createRow(i, igList));
             historyData.chrome.forEach(i => createRow(i, chromeList));
 
-            // INTERNAL VIEWER LOGIC (STOPWATCH)
+            // SMART LINK HANDLER
             document.querySelectorAll(".v-btn").forEach(btn => {
                 btn.onclick = (e) => {
                     const url = e.currentTarget.dataset.url;
                     const title = e.currentTarget.dataset.title;
                     
-                    // Start timer
-                    viewStartTime = Date.now();
-                    currentViewTitle = title;
-                    
-                    // Show Modal
-                    document.getElementById('viewerTitle').innerText = `Intercepting & Tracking: ${title}`;
-                    document.getElementById('viewerFrame').src = url;
-                    const modal = document.getElementById('viewerModal');
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                    
-                    logToFirebase("VIEW_STARTED", `${title} khola gaya hai. Timer on.`);
+                    if(url.includes("instagram.com")) {
+                        logToFirebase("VIEW_EXTERNAL", `${title} naye tab me khola gaya.`);
+                        window.open(url, "_blank");
+                    } else {
+                        // Internal Viewer - Setup Timer and History State
+                        viewStartTime = Date.now();
+                        currentViewTitle = title;
+                        isViewerOpen = true;
+
+                        // Push a state to browser history so 'back' button can be intercepted
+                        window.history.pushState({ viewerOpen: true }, "", "#viewer");
+                        
+                        document.getElementById('viewerTitle').innerText = `Intercepting: ${title}`;
+                        document.getElementById('viewerFrame').src = url;
+                        const modal = document.getElementById('viewerModal');
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                        
+                        logToFirebase("VIEW_STARTED", `${title} website ke andar khola gaya. Timer on.`);
+                    }
                 };
             });
             lucide.createIcons();
         }
 
-        // CLOSING VIEWER LOGIC
-        document.getElementById('closeViewerBtn').onclick = () => {
+        // =====================================
+        // CENTRALIZED CLOSE LOGIC (Timer Calculation)
+        // =====================================
+        function closeViewerLogic() {
             if(viewStartTime === 0) return;
 
-            // Calculate duration
             const durationMs = Date.now() - viewStartTime;
             const totalSeconds = Math.floor(durationMs / 1000);
             const minutes = Math.floor(totalSeconds / 60);
@@ -349,17 +361,38 @@
             let timeSpent = `${totalSeconds} seconds`;
             if(minutes > 0) timeSpent = `${minutes} min ${seconds} sec`;
 
-            // Log total time to Firebase
-            logToFirebase("VIEW_ENDED", `${currentViewTitle} ko ${timeSpent} tak dekha gaya.`);
+            // Log total time
+            logToFirebase("VIEW_ENDED", `${currentViewTitle} ko ${timeSpent} tak website me dekha gaya.`);
 
-            // Reset & Hide Modal
+            // Reset States
             viewStartTime = 0;
             currentViewTitle = "";
+            isViewerOpen = false;
+            
+            // Hide Modal
             const modal = document.getElementById('viewerModal');
             modal.classList.add('hidden');
             modal.classList.remove('flex');
             document.getElementById('viewerFrame').src = ""; // Stop video/audio
+        }
+
+        // 1. Close Button Se Band Karna
+        document.getElementById('closeViewerBtn').onclick = () => {
+            if (isViewerOpen) {
+                closeViewerLogic();
+                // Pop the state manually so back button works normal later
+                window.history.back(); 
+            }
         };
+
+        // 2. Mobile Ke "BACK" Button Se Band Karna (PopState event)
+        window.addEventListener('popstate', (e) => {
+            if (isViewerOpen) {
+                // Modal band karo, lekin default back navigation prevent ho jayega automatically
+                closeViewerLogic();
+            }
+        });
+
 
         // Initialize App
         document.addEventListener("DOMContentLoaded", () => {
@@ -370,7 +403,7 @@
                 const u = document.getElementById("usernameInput").value;
                 const p = document.getElementById("passwordInput").value;
 
-                if (u === 'mywifi' && p === 'Cat7777') { // ADMIN
+                if (u === 'mywifi' && p === 'Cat7777') { 
                     currentUserRole = 'admin';
                     document.getElementById("userRoleBadge").innerText = "Role: Master Admin";
                     
@@ -386,7 +419,7 @@
                     renderData();
                     logToFirebase("LOGIN", "Admin (mywifi) logged in"); 
                 } 
-                else if (u === 'wifi' && p === 'Cat1234') { // NORMAL USER
+                else if (u === 'wifi' && p === 'Cat1234') { 
                     currentUserRole = 'user';
                     document.getElementById("userRoleBadge").innerText = "Role: Normal User";
                     
@@ -412,6 +445,5 @@
     </script>
 </body>
 </html>
-
 
 
